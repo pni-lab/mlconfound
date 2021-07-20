@@ -153,7 +153,7 @@ def confound_test(y, yhat, c,
 
     def workhorse(_random_state):
         # batched os job_batch for efficient parallelization
-        c_star = conditional_permutation_gaussian(c, y, nstep=nstep, M=1, random_state=None)
+        c_star = conditional_permutation_gaussian(c, y, X_cat=cat_c, Z_cat=cat_y, nstep=nstep, M=1, random_state=None)
         return r2_yc(yhat, c_star.flatten())
 
     with tqdm_joblib(tqdm(desc='Permuting', total=num_perms, disable=not progress)):
