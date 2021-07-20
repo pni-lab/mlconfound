@@ -4,8 +4,9 @@ Tools for analyzing and quantifying effects of counfounder variables "
                 "on machine learning model predictions.
 ## Install
 ````
-pip install mlconfound
+pip install git+https://github.com/pni-lab/mlconfound
 ````
+*pipy support coming soon*
 
 ## Usage
 
