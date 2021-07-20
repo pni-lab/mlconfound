@@ -4,7 +4,7 @@ Tools for analyzing and quanifying effects of counfounder variables on machine l
 
 ## Install
 ````
-todo
+pip install mlconfound
 ````
 
 ## Usage
