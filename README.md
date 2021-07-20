@@ -16,6 +16,7 @@ pip install git+https://github.com/pni-lab/mlconfound
 # c   : confounder
 
 from mlconfound.stats import confound_test
+
 confound_test(y, H0_yhat, c)
 ````
 
