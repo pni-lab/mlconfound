@@ -6,7 +6,8 @@ with open("README.md", "r") as fh:
 
 setuptools.setup(
      name='mlconfound',
-     version='0.1',
+     version='0.2',
+     packages=setuptools.find_packages(),
      scripts=[],
      author="Tamas Spisak",
      author_email="tamas.spisak@uk-essen.de",
@@ -15,10 +16,9 @@ setuptools.setup(
      long_description=long_description,
      long_description_content_type="text/markdown",
      url="https://github.com/pni-lab/mlconfound",
-     packages=setuptools.find_packages(),
      classifiers=[
          "Programming Language :: Python :: 3",
-         "OSI Approved :: GNU General Public License v3 or later (GPLv3+)",
+         "License :: OSI Approved :: GNU General Public License v3 or later (GPLv3+)",
          "Operating System :: OS Independent",
      ],
  )
