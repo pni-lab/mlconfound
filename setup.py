@@ -19,12 +19,12 @@ setuptools.setup(
         'joblib>=1.0',
         'tqdm>=4.61',
         'numpy>=1.18',
-        'scipy>=1.4'
-        'statsmodels>=0.11'
-        'pandas>=1.0'
-        'matplotlib>=3.2'
-        'seaborn>=0.11.1'
-        'graphviz>=0.17'
+        'scipy>=1.4',
+        'statsmodels>=0.11',
+        'pandas>=1.0',
+        'matplotlib>=3.2',
+        'seaborn>=0.11.1',
+        'graphviz>=0.17',
         'dot2tex>=2.11'
     ],
     classifiers=[
