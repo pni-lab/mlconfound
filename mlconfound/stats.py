@@ -110,15 +110,13 @@ ConfoundTestResults = namedtuple('ConfoundTestResults', ['r2_y_c',
                                                          'r2_yhat_c',
                                                          'r2_y_yhat',
                                                          'p',
-                                                         'p_ci',
-                                                         'found'])
+                                                         'p_ci'])
 
 ConfoundTestResultsDetailed = namedtuple('ConfoundTestResults', ['r2_y_c',
                                                                  'r2_yhat_c',
                                                                  'r2_y_yhat',
                                                                  'p',
                                                                  'p_ci',
-                                                                 'found',
                                                                  'null_distribution'])
 
 
@@ -147,13 +145,16 @@ def confound_test(y, yhat, c,
     rng = np.random.default_rng(random_state)
     random_sates = rng.integers(np.iinfo(np.int32).max, size=num_perms)
 
+    c = np.array(c)
+
     r2_y_c = r2_yc(y, c)
     r2_y_yhat = r2_yy(y, yhat)
     r2_yhat_c = r2_yc(yhat, c)
 
     def workhorse(_random_state):
         # batched os job_batch for efficient parallelization
-        c_star = conditional_permutation_gaussian(c, y, X_cat=cat_c, Z_cat=cat_y, nstep=nstep, M=1, random_state=None)
+        c_star = conditional_permutation_gaussian(c, y, X_cat=cat_c, Z_cat=cat_y, nstep=nstep, M=1,
+                                                  random_state=_random_state)
         return r2_yc(yhat, c_star.flatten())
 
     with tqdm_joblib(tqdm(desc='Permuting', total=num_perms, disable=not progress)):
@@ -169,7 +170,6 @@ def confound_test(y, yhat, c,
             r2_y_yhat,
             p,
             ci,
-            len(r2_yhat_c_star),
             r2_yhat_c_star
         )
     else:
@@ -178,6 +178,5 @@ def confound_test(y, yhat, c,
             r2_yhat_c,
             r2_y_yhat,
             p,
-            ci,
-            len(r2_yhat_c_star)
+            ci
         )
