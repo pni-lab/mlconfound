@@ -1,10 +1,11 @@
-from joblib import Parallel, delayed, cpu_count
-from tqdm import tqdm
+from collections import namedtuple
+
 import numpy as np
 import pandas as pd
-from collections import namedtuple
+from joblib import Parallel, delayed
 from scipy.stats import beta
 from statsmodels.formula.api import ols, logit
+from tqdm import tqdm
 
 from ._utils import tqdm_joblib
 
@@ -90,18 +91,18 @@ def _generate_X_CPT_MC(nstep, log_lik_mat, Pi, random_state=None):
     # for independence while controlling for confounders.
     # Journal of the Royal Statistical Society: Series B (Statistical Methodology), 82(1), pp.175 - 197.
     n = len(Pi)
-    npair = np.floor(n/2).astype(int)
+    npair = np.floor(n / 2).astype(int)
     rng = np.random.default_rng(random_state)
     for istep in range(nstep):
         perm = rng.choice(n, n, replace=False)
         inds_i = perm[0:npair]
-        inds_j = perm[npair:(2*npair)]
+        inds_j = perm[npair:(2 * npair)]
         # for each k=1,...,npair, decide whether to swap Pi[inds_i[k]] with Pi[inds_j[k]]
         log_odds = log_lik_mat[Pi[inds_i], inds_j] + log_lik_mat[Pi[inds_j], inds_i] \
-            - log_lik_mat[Pi[inds_i], inds_i] - log_lik_mat[Pi[inds_j], inds_j]
-        swaps = rng.binomial(1, 1/(1+np.exp(-np.maximum(-500, log_odds))))
-        Pi[inds_i], Pi[inds_j] = Pi[inds_i] + swaps*(Pi[inds_j]-Pi[inds_i]), Pi[inds_j] - \
-            swaps*(Pi[inds_j]-Pi[inds_i])
+                   - log_lik_mat[Pi[inds_i], inds_i] - log_lik_mat[Pi[inds_j], inds_j]
+        swaps = rng.binomial(1, 1 / (1 + np.exp(-np.maximum(-500, log_odds))))
+        Pi[inds_i], Pi[inds_j] = Pi[inds_i] + swaps * (Pi[inds_j] - Pi[inds_i]), Pi[inds_j] - \
+                                 swaps * (Pi[inds_j] - Pi[inds_i])
     return Pi
 
 
@@ -111,7 +112,6 @@ ConfoundTestResults = namedtuple('ConfoundTestResults', ['r2_y_c',
                                                          'p',
                                                          'p_ci',
                                                          'found'])
-
 
 ConfoundTestResultsDetailed = namedtuple('ConfoundTestResults', ['r2_y_c',
                                                                  'r2_yhat_c',

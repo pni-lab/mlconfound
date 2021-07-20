@@ -5,7 +5,6 @@ def simulate(ts_ratio_y, cs_ratio_y,
              ts_ratio_c, cs_ratio_c,
              ts_ratio_yhat, cs_ratio_yhat,
              n=100, random_state=None):
-
     rng = np.random.default_rng(random_state)
     # true signal
     ts = rng.normal(0, 1, n)

@@ -1,12 +1,8 @@
+import dot2tex
+import graphviz
+import matplotlib.pyplot as plt
 import numpy as np
-
-# optional imports
-from ._utils import _optional_import_
-
-sns = _optional_import_("seaborn")
-plt = _optional_import_("matplotlib.pyplot")
-graphviz = _optional_import_("graphviz")
-dot2tex = _optional_import_("dot2tex")
+import seaborn as sns
 
 
 def _pval_to_str(pval, alpha=0.05, floor=0.0001):

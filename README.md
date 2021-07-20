@@ -1,7 +1,7 @@
 # mlconfound
 
-Tools for analyzing and quanifying effects of counfounder variables on machine learning model predictions.
-
+Tools for analyzing and quantifying effects of counfounder variables "
+                "on machine learning model predictions.
 ## Install
 ````
 todo
