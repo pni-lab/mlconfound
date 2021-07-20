@@ -22,4 +22,4 @@ See `notebooks/quickstart.ipynb` for more details.
 
 
 ## Documentation
-*todo*
+*coming soon*
