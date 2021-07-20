@@ -1,0 +1,9 @@
+graph {
+	rankdir=LR size="4.5,4.5"
+	c [label=center]
+	y [label="pain sensitivity"]
+	yhat [label=prediction]
+	c -- yhat [label="0.114 (p=0.03*)" style=dashed]
+	c -- y [label=0.206]
+	y -- yhat [label=0.35]
+}
