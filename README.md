@@ -4,7 +4,7 @@ Tools for analyzing and quantifying effects of counfounder variables "
                 "on machine learning model predictions.
 ## Install
 ````
-todo
+pip install mlconfound
 ````
 
 ## Usage
@@ -22,4 +22,4 @@ See `notebooks/quickstart.ipynb` for more details.
 
 
 ## Documentation
-*todo*
+*coming soon*
