@@ -48,7 +48,7 @@ def _binom_ci(success, total, ci=0.95):
     return lower, upper
 
 
-def conditional_permutation_gaussian(X0, Z, X_cat=False, Z_cat=False, nstep=10, M=1000, random_state=None):
+def _conditional_log_likelihood_gaussian(X0, Z, X_cat=False, Z_cat=False):
     df = pd.DataFrame({
         'Z': Z,
         'X': X0
@@ -61,13 +61,11 @@ def conditional_permutation_gaussian(X0, Z, X_cat=False, Z_cat=False, nstep=10, 
         fit = ols('X ~ C(Z)', data=df).fit()
     else:
         fit = ols('X ~ Z', data=df).fit()
-    mu = fit.predict(df)
+    mu = np.array(fit.predict(df))
     resid = X0 - mu
     sigma2 = np.repeat(np.power(np.std(resid), 2), len(Z))
     # X | Z = Z_i ~ N(mu[i], sig2[i])
-    log_lik_mat = - np.power(X0, 2)[:, None] * (1 / 2 / sigma2)[None, :] + X0[:, None] * (mu / sigma2)[None, :]
-    Pi_mat = _generate_X_CPT(nstep, M, log_lik_mat, random_state=random_state)
-    return X0[Pi_mat]
+    return -np.power(X0, 2)[:, None] * (1 / 2 / sigma2)[None, :] + X0[:, None] * (mu / sigma2)[None, :]
 
 
 def _generate_X_CPT(nstep, M, log_lik_mat, Pi_init=[], random_state=None):
@@ -121,7 +119,7 @@ ConfoundTestResultsDetailed = namedtuple('ConfoundTestResults', ['r2_y_c',
 
 
 def confound_test(y, yhat, c,
-                  num_perms=10000,
+                  num_perms=1000,
                   cat_y=False,
                   cat_c=False,
                   nstep=10,
@@ -151,10 +149,12 @@ def confound_test(y, yhat, c,
     r2_y_yhat = r2_yy(y, yhat)
     r2_yhat_c = r2_yc(yhat, c)
 
+    cond_log_lik_mat = _conditional_log_likelihood_gaussian(c, y, X_cat=cat_c, Z_cat=cat_y)
+
     def workhorse(_random_state):
         # batched os job_batch for efficient parallelization
-        c_star = conditional_permutation_gaussian(c, y, X_cat=cat_c, Z_cat=cat_y, nstep=nstep, M=1,
-                                                  random_state=_random_state)
+        Pi = _generate_X_CPT(nstep, 1, cond_log_lik_mat, random_state=random_state)
+        c_star = c[Pi]
         return r2_yc(yhat, c_star.flatten())
 
     with tqdm_joblib(tqdm(desc='Permuting', total=num_perms, disable=not progress)):
