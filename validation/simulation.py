@@ -105,7 +105,8 @@ if __name__ == '__main__':
         if 'LassoCV' in args.models:
             yhat['LassoCV'] = cross_val_predict(LassoCV(), X, y, n_jobs=args.n_jobs)
         if 'RandomForestRegressor' in args.models:
-            yhat['RandomForestRegressor'] = cross_val_predict(RandomForestRegressor(), X, y, n_jobs=args.n_jobs)
+            yhat['RandomForestRegressor'] = cross_val_predict(RandomForestRegressor(random_state=args.random_seed),
+                                                              X, y, n_jobs=args.n_jobs)
 
         # do confounder testing
         for model in yhat:
