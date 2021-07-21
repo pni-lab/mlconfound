@@ -1,7 +1,9 @@
 #!/bin/bash
 
+# to be runned from the project root dir
+
 SCRIPT_PATH=$(dirname `which $0`)
 
-FILE=test_H0.csv
+FILE=data_out/validation_H0.csv
 $SCRIPT_PATH/simulation.py --head > $FILE
-$SCRIPT_PATH/simulation.py -r 100 >> $FILE
+$SCRIPT_PATH/simulation.py -r 100 --random-seed 1 >> $FILE

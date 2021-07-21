@@ -153,7 +153,7 @@ def confound_test(y, yhat, c,
 
     def workhorse(_random_state):
         # batched os job_batch for efficient parallelization
-        Pi = _generate_X_CPT(nstep, 1, cond_log_lik_mat, random_state=random_state)
+        Pi = _generate_X_CPT(nstep, 1, cond_log_lik_mat, random_state=_random_state)
         c_star = c[Pi]
         return r2_yc(yhat, c_star.flatten())
 
