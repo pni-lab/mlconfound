@@ -3,7 +3,7 @@ from collections import namedtuple
 import numpy as np
 import pandas as pd
 from joblib import Parallel, delayed
-from scipy.stats import beta
+from scipy.stats import beta, norm
 from statsmodels.formula.api import ols, mnlogit
 from tqdm import tqdm
 
@@ -53,19 +53,28 @@ def _conditional_log_likelihood_gaussian(X0, Z, X_cat=False, Z_cat=False):
         'Z': Z,
         'X': X0
     })
-    if X_cat and Z_cat:
-        fit = mnlogit('C(X) ~ C(Z)', data=df).fit()
-    elif X_cat:
-        fit = mnlogit('C(X) ~ Z', data=df).fit()
-    elif Z_cat:
-        fit = ols('X ~ C(Z)', data=df).fit()
+
+    if X_cat:
+        if Z_cat:
+            fit = mnlogit('C(X) ~ C(Z)', data=df).fit()
+        else:
+            fit = mnlogit('C(X) ~ Z', data=df).fit()
+        mat = np.log(fit.predict(df))  # predict returns class probabilities
+        mat.index = df.Z
+        labels = np.unique(df.X)
+        columns = [np.argwhere(labels == i).flatten()[0] for i in df.X]  # label 2 index
+        return mat.iloc[:, columns].values.T
     else:
-        fit = ols('X ~ Z', data=df).fit()
-    mu = np.array(fit.predict(df))
-    resid = X0 - mu
-    sigma2 = np.repeat(np.power(np.std(resid), 2), len(Z))
-    # X | Z = Z_i ~ N(mu[i], sig2[i])
-    return -np.power(X0, 2)[:, None] * (1 / 2 / sigma2)[None, :] + X0[:, None] * (mu / sigma2)[None, :]
+        if Z_cat:
+            fit = ols('X ~ C(Z)', data=df).fit()
+        else:
+            fit = ols('X ~ Z', data=df).fit()
+        mu = np.array(fit.predict(df))
+        resid = X0 - mu
+        sigma2 = np.repeat(np.power(np.std(resid), 2), len(Z))
+        # X | Z = Z_i ~ N(mu[i], sig2[i])
+        return np.array([norm.logpdf(X0, loc=m, scale=sigma2) for m in mu]).T
+      # return -np.power(X0, 2)[:, None] * (1 / 2 / sigma2)[None, :] + X0[:, None] * (mu / sigma2)[None, :]
 
 
 def _generate_X_CPT(nstep, M, log_lik_mat, Pi_init=[], random_state=None):
@@ -121,8 +130,8 @@ ConfoundTestResultsDetailed = namedtuple('ConfoundTestResults', ['r2_y_c',
 def confound_test(y, yhat, c,
                   num_perms=1000,
                   cat_y=False,
-                  cat_c=False,
-                  nstep=10,
+                  cat_c=False,  
+                  nstep=50,
                   return_null_dist=False,
                   random_state=None,
                   progress=True,
