@@ -4,7 +4,7 @@ import numpy as np
 import pandas as pd
 from joblib import Parallel, delayed
 from scipy.stats import beta
-from statsmodels.formula.api import ols, logit
+from statsmodels.formula.api import ols, mnlogit
 from tqdm import tqdm
 
 from ._utils import tqdm_joblib
@@ -33,7 +33,7 @@ def _r2_cat_cat(x, y):
         'x': x,
         'y': y
     })
-    fit = logit('C(y) ~ C(x)', data=df).fit()
+    fit = mnlogit('C(y) ~ C(x)', data=df).fit()
     return fit.rsquared
 
 
@@ -54,9 +54,9 @@ def _conditional_log_likelihood_gaussian(X0, Z, X_cat=False, Z_cat=False):
         'X': X0
     })
     if X_cat and Z_cat:
-        fit = logit('C(X) ~ C(Z)', data=df).fit()
+        fit = mnlogit('C(X) ~ C(Z)', data=df).fit()
     elif X_cat:
-        fit = logit('C(X) ~ Z', data=df).fit()
+        fit = mnlogit('C(X) ~ Z', data=df).fit()
     elif Z_cat:
         fit = ols('X ~ C(Z)', data=df).fit()
     else:
