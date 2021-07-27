@@ -1,6 +1,14 @@
 import numpy as np
 
 
+def normal_to_heavytailed(x, h=0.2):
+    return x*np.exp((h*x**2)/2)
+
+
+def normal_to_heavytailed_skewed(x, h=0.1, g=0.2):
+    return ((np.exp(g*x)-1)/g)*np.exp((h*x**2)/2)
+
+
 def simulate_y_c_yhat(cov_y_c,
                       y_ratio_yhat, c_ratio_yhat,
                       n, random_state=None):
