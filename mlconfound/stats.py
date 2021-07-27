@@ -159,10 +159,11 @@ def confound_test(y, yhat, c,
     r2_yhat_c = r2_yc(yhat, c)
 
     cond_log_lik_mat = _conditional_log_likelihood_gaussian(c, y, X_cat=cat_c, Z_cat=cat_y)
+    Pi_init = _generate_X_CPT_MC(nstep, cond_log_lik_mat, np.arange(len(c), dtype=int), random_state=random_state)
 
     def workhorse(_random_state):
         # batched os job_batch for efficient parallelization
-        Pi = _generate_X_CPT(nstep, 1, cond_log_lik_mat, random_state=_random_state)
+        Pi = _generate_X_CPT_MC(nstep, cond_log_lik_mat, Pi_init, random_state=_random_state)
         c_star = c[Pi]
         return r2_yc(yhat, c_star.flatten())
 
