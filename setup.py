@@ -5,7 +5,7 @@ with open("README.md", "r") as fh:
 
 setuptools.setup(
     name='mlconfound',
-    version='0.4',
+    version='0.5',
     packages=setuptools.find_packages(),
     scripts=[],
     author="Tamas Spisak",
