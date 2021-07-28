@@ -33,8 +33,19 @@ def _r2_cat_cat(x, y):
         'x': x,
         'y': y
     })
-    fit = mnlogit('C(y) ~ C(x)', data=df).fit()
-    return fit.rsquared
+    fit = mnlogit('C(y) ~ C(x)', data=df).fit(disp=0)
+    return fit.prsquared
+
+
+def _r2_factory(cat_x, cat_y):
+    if cat_x and cat_y:
+        return _r2_cat_cat
+    elif cat_x:
+        return _r2_cat_cont
+    elif cat_y:
+        return _r2_cont_cat
+    else:
+        return _r2_cont_cont
 
 
 def _binom_ci(success, total, ci=0.95):
@@ -56,9 +67,9 @@ def _conditional_log_likelihood_gaussian(X0, Z, X_cat=False, Z_cat=False):
 
     if X_cat:
         if Z_cat:
-            fit = mnlogit('C(X) ~ C(Z)', data=df).fit()
+            fit = mnlogit('C(X) ~ C(Z)', data=df).fit(disp=0)
         else:
-            fit = mnlogit('C(X) ~ Z', data=df).fit()
+            fit = mnlogit('C(X) ~ Z', data=df).fit(disp=0)
         mat = np.log(fit.predict(df))  # predict returns class probabilities
         mat.index = df.Z
         labels = np.unique(df.X)
@@ -74,7 +85,7 @@ def _conditional_log_likelihood_gaussian(X0, Z, X_cat=False, Z_cat=False):
         sigma2 = np.repeat(np.power(np.std(resid), 2), len(Z))
         # X | Z = Z_i ~ N(mu[i], sig2[i])
         return np.array([norm.logpdf(X0, loc=m, scale=sigma2) for m in mu]).T
-      # return -np.power(X0, 2)[:, None] * (1 / 2 / sigma2)[None, :] + X0[:, None] * (mu / sigma2)[None, :]
+    # return -np.power(X0, 2)[:, None] * (1 / 2 / sigma2)[None, :] + X0[:, None] * (mu / sigma2)[None, :]
 
 
 def _generate_X_CPT(nstep, M, log_lik_mat, Pi_init=[], random_state=None):
@@ -113,80 +124,89 @@ def _generate_X_CPT_MC(nstep, log_lik_mat, Pi, random_state=None):
     return Pi
 
 
-ConfoundTestResults = namedtuple('ConfoundTestResults', ['r2_y_c',
-                                                         'r2_yhat_c',
-                                                         'r2_y_yhat',
-                                                         'p',
-                                                         'p_ci'])
-
-ConfoundTestResultsDetailed = namedtuple('ConfoundTestResults', ['r2_y_c',
-                                                                 'r2_yhat_c',
-                                                                 'r2_y_yhat',
-                                                                 'p',
-                                                                 'p_ci',
-                                                                 'null_distribution'])
+CptResults = namedtuple('CptResults', ['r2_x_z',
+                                       'r2_x_y',
+                                       'r2_y_z',
+                                       'p',
+                                       'p_ci',
+                                       'null_distribution'])
 
 
-def confound_test(y, yhat, c,
-                  num_perms=1000,
-                  cat_y=False,
-                  cat_c=False,
-                  nstep=50,
-                  return_null_dist=False,
-                  random_state=None,
-                  progress=True,
-                  n_jobs=-1):
-    if cat_y and cat_c:
-        r2_yc = _r2_cat_cat
-        r2_yy = _r2_cat_cat
-    elif cat_y:
-        r2_yc = _r2_cat_cont
-        r2_yy = _r2_cat_cat
-    elif cat_c:
-        r2_yc = _r2_cont_cat
-        r2_yy = _r2_cont_cont
-    else:
-        r2_yc = _r2_cont_cont
-        r2_yy = _r2_cont_cont
+def cpt(x, y, z, num_perms=1000, cat_x=False, cat_y=False, cat_z=False, mcmc_nstep=50, cond_dist_method='GaussianReg',
+        return_null_dist=False, random_state=None, progress=True, n_jobs=-1):
+    if cond_dist_method != 'GaussianReg':
+        assert NotImplementedError("Currently only regression-based Gaussian conditional distribution estimation "
+                                   "('GaussianReg') is implemented.")
+
+    r2_xy = _r2_factory(cat_x, cat_y)
+    r2_xz = _r2_factory(cat_x, cat_z)
+    r2_yz = _r2_factory(cat_y, cat_z)
 
     rng = np.random.default_rng(random_state)
     random_sates = rng.integers(np.iinfo(np.int32).max, size=num_perms)
 
-    c = np.array(c)
+    x = np.array(x)
 
-    r2_y_c = r2_yc(y, c)
-    r2_y_yhat = r2_yy(y, yhat)
-    r2_yhat_c = r2_yc(yhat, c)
+    r2_x_z = r2_xy(x, y)
+    r2_y_z = r2_yz(y, z)
+    r2_x_y = r2_xy(x, y)
 
-    cond_log_lik_mat = _conditional_log_likelihood_gaussian(c, y, X_cat=cat_c, Z_cat=cat_y)
-    Pi_init = _generate_X_CPT_MC(nstep, cond_log_lik_mat, np.arange(len(c), dtype=int), random_state=random_state)
+    cond_log_lik_mat = _conditional_log_likelihood_gaussian(x, z, X_cat=cat_x, Z_cat=cat_z)
+    Pi_init = _generate_X_CPT_MC(mcmc_nstep, cond_log_lik_mat, np.arange(len(x), dtype=int), random_state=random_state)
 
     def workhorse(_random_state):
         # batched os job_batch for efficient parallelization
-        Pi = _generate_X_CPT_MC(nstep, cond_log_lik_mat, Pi_init, random_state=_random_state)
-        c_star = c[Pi]
-        return r2_yc(yhat, c_star.flatten())
+        Pi = _generate_X_CPT_MC(mcmc_nstep, cond_log_lik_mat, Pi_init, random_state=_random_state)
+        return r2_xy(x[Pi], y)
 
     with tqdm_joblib(tqdm(desc='Permuting', total=num_perms, disable=not progress)):
-        r2_yhat_c_star = np.array(Parallel(n_jobs=n_jobs)(delayed(workhorse)(i) for i in random_sates))
+        r2_xpi_y = np.array(Parallel(n_jobs=n_jobs)(delayed(workhorse)(i) for i in random_sates))
 
-    p = np.sum(r2_yhat_c_star >= r2_yhat_c) / len(r2_yhat_c_star)
-    ci = _binom_ci(len(r2_yhat_c_star) * p, len(r2_yhat_c_star))
+    p = np.sum(r2_xpi_y >= r2_x_y) / len(r2_xpi_y)
+    ci = _binom_ci(len(r2_xpi_y) * p, len(r2_xpi_y))
 
-    if return_null_dist:
-        return ConfoundTestResultsDetailed(
-            r2_y_c,
-            r2_yhat_c,
-            r2_y_yhat,
-            p,
-            ci,
-            r2_yhat_c_star
-        )
-    else:
-        return ConfoundTestResults(
-            r2_y_c,
-            r2_yhat_c,
-            r2_y_yhat,
-            p,
-            ci
-        )
+    if not return_null_dist:
+        r2_xpi_y = None
+
+    return CptResults(
+        r2_x_z,
+        r2_x_y,
+        r2_y_z,
+        p,
+        ci,
+        r2_xpi_y
+    )
+
+
+ResultsFullyConfounded = namedtuple('ResultsFullyConfounded', ['r2_y_c',
+                                                               'r2_y_yhat',
+                                                               'r2_yhat_c',
+                                                               'p',
+                                                               'p_ci',
+                                                               'null_distribution'])
+
+
+def test_fully_confounded(y, yhat, c, num_perms=1000, cat_y=False, cat_yhat=False, cat_c=False, mcmc_nstep=50,
+                          cond_dist_method='GaussianReg',
+                          return_null_dist=False, random_state=None, progress=True, n_jobs=-1):
+    return ResultsFullyConfounded(
+        *cpt(x=y, y=yhat, z=c, num_perms=num_perms, cat_x=cat_y, cat_y=cat_yhat, cat_z=cat_c, mcmc_nstep=mcmc_nstep,
+             cond_dist_method=cond_dist_method, return_null_dist=return_null_dist, random_state=random_state,
+             progress=progress, n_jobs=n_jobs))
+
+
+ResultsPartiallyConfounded = namedtuple('ResultsPartiallyConfounded', ['r2_y_c',
+                                                                       'r2_yhat_c',
+                                                                       'r2_y_yhat',
+                                                                       'p',
+                                                                       'p_ci',
+                                                                       'null_distribution'])
+
+
+def test_partially_confounded(y, yhat, c, num_perms=1000, cat_y=False, cat_yhat=False, cat_c=False, mcmc_nstep=50,
+                              cond_dist_method='GaussianReg',
+                              return_null_dist=False, random_state=None, progress=True, n_jobs=-1):
+    return ResultsPartiallyConfounded(
+        *cpt(x=c, y=yhat, z=y, num_perms=num_perms, cat_x=cat_c, cat_y=cat_yhat, cat_z=cat_y, mcmc_nstep=mcmc_nstep,
+             cond_dist_method=cond_dist_method, return_null_dist=return_null_dist, random_state=random_state,
+             progress=progress, n_jobs=n_jobs))
