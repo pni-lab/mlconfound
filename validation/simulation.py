@@ -71,7 +71,7 @@ if __name__ == '__main__':
         all_cov_y_c = [0, 0.2, 0.4, 0.6, 0.8]
 
         all_c_to_y_ratio_in_yhat = [0, 0.1, 0.3, 0.5, 1]
-        yc_ratio = all_c_to_y_ratio_in_yhat
+        all_yc_ratio = all_c_to_y_ratio_in_yhat
 
         all_yc_in_yhat = [0, 0.3, 0.6, 0.9]
 
@@ -88,7 +88,7 @@ if __name__ == '__main__':
         all_cov_y_c = [0, 0.2, 0.4, 0.6, 0.8]
 
         all_y_to_c_ratio_in_yhat = [0, 0.1, 0.3, 0.5, 1]
-        yc_ratio = all_y_to_c_ratio_in_yhat
+        all_yc_ratio = all_y_to_c_ratio_in_yhat
 
         all_yc_in_yhat = [0, 0.3, 0.6, 0.9]
 
@@ -99,13 +99,13 @@ if __name__ == '__main__':
     print('Number of simulations:', np.prod([len(i) for i in [
         all_cov_y_c,
         all_yc_in_yhat,
-        yc_ratio,
+        all_yc_ratio,
         all_n]]) * repetitions)
 
     all_param_configurations = itertools.product(
         all_cov_y_c,
         all_yc_in_yhat,
-        yc_ratio,
+        all_yc_ratio,
         all_n)
 
     rng = np.random.default_rng(args.random_seed)
@@ -114,7 +114,7 @@ if __name__ == '__main__':
                                     "n", "c_to_y_ratio_in_yhat", "yc_in_yhat", "cov_y_c",
                                     "num_perms", "random_seed"])
 
-    for cov_y_c, yc_in_yhat, c_to_y_ratio_in_yhat, n in tqdm(list(all_param_configurations)):
+    for cov_y_c, yc_in_yhat, yc_ratio, n in tqdm(list(all_param_configurations)):
 
         if args.mode == 'partial':
             y_ratio_yhat = np.round(yc_in_yhat / (yc_ratio + 1), 2)
