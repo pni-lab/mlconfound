@@ -174,8 +174,8 @@ if __name__ == '__main__':
 
         # update file after every iteration...
         if args.out_file is None:
-            args = '_'.join(str(args)[10:].split(', '))[:-1]
-            filename = args.out_prefix + '_' + args + '.csv'
+            params = '_'.join(str(args)[10:].split(', '))[:-1]
+            filename = args.out_prefix + '_' + params + '.csv'
             results.to_csv(sys.path[0] + '/data_out/' + filename)
         else:
             results.to_csv(args.out_file)
