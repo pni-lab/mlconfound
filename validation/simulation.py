@@ -63,8 +63,8 @@ if __name__ == '__main__':
         ################# default simulation parameters #########################
         confound_test = test_partially_confounded
 
-        repetitions = 1
-        num_perms = 100
+        repetitions = 100
+        num_perms = 1000
 
         all_n = [50, 100, 500, 1000]
 
