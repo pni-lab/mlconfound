@@ -18,7 +18,7 @@ from mlconfound.simulate import simulate_y_c_yhat, sinh_arcsinh
 parser = argparse.ArgumentParser(description="Validate 'mlconfound' on simulated data.")
 
 parser.add_argument("--mode", help="Confound testing mode: 'partial' or 'full'. Default: 'partial'. ",
-                    choices=['partial', 'full'], type=str, default=1)
+                    choices=['partial', 'full'], type=str, default='partial')
 
 parser.add_argument("--delta-yc", dest="delta_yc", action="store", default=1.0,
                     help="Delta of the sinh_arcsinh transformation on y and c to set kurtosis. "
@@ -59,7 +59,7 @@ parser.add_argument("--out", dest="out_file", action="store", default=None,
 if __name__ == '__main__':
     args = parser.parse_args()
 
-    if args.mode == 1:  # option 3: partial
+    if args.mode == 'partial':  # option 3: partial
         ################# default simulation parameters #########################
         confound_test = test_partially_confounded
 
@@ -70,12 +70,13 @@ if __name__ == '__main__':
 
         all_cov_y_c = [0, 0.2, 0.4, 0.6, 0.8]
 
-        all_c_to_y_ratio_in_yhat = [0, 0.5, 1, 2]
+        all_c_to_y_ratio_in_yhat = [0, 0.1, 0.3, 0.5, 1]
+        yc_ratio = all_c_to_y_ratio_in_yhat
 
         all_yc_in_yhat = [0, 0.3, 0.6, 0.9]
 
         #########################################################################
-    elif args.mode == 2:  #option 1: full
+    elif args.mode == 'full':  #option 1: full
         ################# default simulation parameters #########################
         confound_test = test_fully_confounded()
 
@@ -86,7 +87,8 @@ if __name__ == '__main__':
 
         all_cov_y_c = [0, 0.2, 0.4, 0.6, 0.8]
 
-        all_c_to_y_ratio_in_yhat = [0, 0.5, 1, 2]
+        all_y_to_c_ratio_in_yhat = [0, 0.1, 0.3, 0.5, 1]
+        yc_ratio = all_y_to_c_ratio_in_yhat
 
         all_yc_in_yhat = [0, 0.3, 0.6, 0.9]
 
@@ -97,13 +99,13 @@ if __name__ == '__main__':
     print('Number of simulations:', np.prod([len(i) for i in [
         all_cov_y_c,
         all_yc_in_yhat,
-        all_c_to_y_ratio_in_yhat,
+        yc_ratio,
         all_n]]) * repetitions)
 
     all_param_configurations = itertools.product(
         all_cov_y_c,
         all_yc_in_yhat,
-        all_c_to_y_ratio_in_yhat,
+        yc_ratio,
         all_n)
 
     rng = np.random.default_rng(args.random_seed)
@@ -113,9 +115,13 @@ if __name__ == '__main__':
                                     "num_perms", "random_seed"])
 
     for cov_y_c, yc_in_yhat, c_to_y_ratio_in_yhat, n in tqdm(list(all_param_configurations)):
-        y_ratio_yhat = np.round(yc_in_yhat / (c_to_y_ratio_in_yhat + 1), 2)
-        c_ratio_yhat = np.round(c_to_y_ratio_in_yhat * yc_in_yhat / (c_to_y_ratio_in_yhat + 1), 2)
 
+        if args.mode == 'partial':
+            y_ratio_yhat = np.round(yc_in_yhat / (yc_ratio + 1), 2)
+            c_ratio_yhat = np.round(yc_ratio * yc_in_yhat / (yc_ratio + 1), 2)
+        elif args.mode == 'full':
+            c_ratio_yhat = np.round(yc_in_yhat / (yc_ratio + 1), 2)
+            y_ratio_yhat = np.round(yc_ratio * yc_in_yhat / (yc_ratio + 1), 2)
 
         def workhorse(_random_state):
             # simulate
