@@ -78,7 +78,7 @@ if __name__ == '__main__':
         #########################################################################
     elif args.mode == 'full':  #option 1: full
         ################# default simulation parameters #########################
-        confound_test = test_fully_confounded()
+        confound_test = test_fully_confounded
 
         repetitions = 100
         num_perms = 1000
