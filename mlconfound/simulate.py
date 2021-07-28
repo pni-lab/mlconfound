@@ -1,12 +1,17 @@
 import numpy as np
 
 
-def normal_to_heavytailed(x, h=0.2):
-    return x*np.exp((h*x**2)/2)
-
-
-def normal_to_heavytailed_skewed(x, h=0.1, g=0.2):
-    return ((np.exp(g*x)-1)/g)*np.exp((h*x**2)/2)
+def sinh_arcsinh(x, delta=1, epsilon=0):
+    """ Sinh-arcsinh transformation
+    The sinh-arcsinh transformation of Jones and Pewsey can be used to transfrom Normal distribution to non-normal.
+    See Jones, M. C. and Pewsey A. (2009). Sinh-arcsinh distributions. Biometrika 96: 761–780` for details.
+    :param array-like x: Normally distributed input data
+    :param float delta: parameter to control kurtosis, delta=1 means no change.
+    :param float epsilon: parameter to control skewness, epsilon=0 means no change.
+    :return: transformed data.
+    :rtype: array-like
+    """
+    return np.sinh(delta * np.arcsinh(x) - epsilon)
 
 
 def simulate_y_c_yhat(cov_y_c,
@@ -16,7 +21,7 @@ def simulate_y_c_yhat(cov_y_c,
 
     y, c = rng.multivariate_normal([0, 0], [[1, cov_y_c], [cov_y_c, 1]], n).T
 
-    yhat = y_ratio_yhat * y + c_ratio_yhat * c  +  (1 - y_ratio_yhat - c_ratio_yhat) * rng.normal(0, 1, n)
+    yhat = y_ratio_yhat * y + c_ratio_yhat * c + (1 - y_ratio_yhat - c_ratio_yhat) * rng.normal(0, 1, n)
 
     return y, c, yhat
 

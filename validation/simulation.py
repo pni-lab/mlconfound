@@ -1,128 +1,182 @@
 #!/usr/bin/env python
 import argparse
 
-from sklearn.linear_model import RidgeCV, LassoCV
-from sklearn.ensemble import RandomForestRegressor
-from sklearn.model_selection import cross_val_predict
+import itertools
+import numpy as np
+import pandas as pd
+import matplotlib.pyplot as plt
+from tqdm import tqdm
+from joblib import Parallel, delayed
 
-from mlconfound.simulate import simulate_y_c_X
-from mlconfound.stats import confound_test
+import os
+path = os.path.dirname(os.path.abspath(__file__))
+import sys
+sys.path.insert(0, sys.path[0] + '/..')
+from mlconfound.stats import test_fully_confounded, test_partially_confounded
+from mlconfound.simulate import simulate_y_c_yhat, sinh_arcsinh
 
 parser = argparse.ArgumentParser(description="Validate 'mlconfound' on simulated data.")
 
-parser.add_argument("-r", "--repeat", help="Repeat r times. (seed incremented, if not None)",
-                    action="store", type=int, default=1)
-parser.add_argument("--header", help="Print header and exit.",
+parser.add_argument("--mode", help="Confound testing mode: 'partial' or 'full'. Default: 'partial'. ",
+                    choices=['partial', 'full'], type=str, default=1)
+
+parser.add_argument("--delta-yc", dest="delta_yc", action="store", default=1.0,
+                    help="Delta of the sinh_arcsinh transformation on y and c to set kurtosis. "
+                         "Default: 1: no transformation",
+                    type=float)
+parser.add_argument("--epsilon-yc", dest="epsilon_yc", action="store", default=0.0,
+                    help="Epsilon of the sinh_arcsinh transformation on y and c to set skewness. "
+                         "Default: 0: no transformation",
+                    type=float)
+
+parser.add_argument("--delta-yhat", dest="delta_yhat", action="store", default=1.0,
+                    help="Delta of the sinh_arcsinh transformation on yhat to set kurtosis. "
+                         "Default: 1: no transformation",
+                    type=float)
+parser.add_argument("--epsilon-yhat", dest="epsilon_yhat", action="store", default=0.0,
+                    help="Epsilon of the sinh_arcsinh transformation on yhat to set skewness. "
+                         "Default: 0: no transformation",
+                    type=float)
+
+parser.add_argument("--cat-yyhat", help="y and yhat is categorical. (default: continuous)",
                     action="store_true")
-parser.add_argument("-j", "--n_jobs", dest="n_jobs", action="store", default=-1,
+parser.add_argument("--cat-c", help="c is categorical. (default: continuous)",
+                    action="store_true")
+
+parser.add_argument("--random-seed", dest="random_seed", action="store", default=4242,
+                    help="Random seed. Default: 4242", type=int)
+parser.add_argument("--n-jobs", dest="n_jobs", action="store", default=-1,
                     help="Number of cores to use. Default: -1", type=int)
 
-arg_simulate = parser.add_argument_group('General options for the simulation')
-arg_simulate.add_argument('-n', '--n', '--number-of-observations', dest="n", action="store",
-                          default=100,
-                          help="Number of observations (default: 100)", type=int)
-arg_simulate.add_argument("-s", "--seed", "--random-seed", dest="random_seed", action="store", default=None,
-                          help="Seed for random generator. (default: None)", type=int)
+parser.add_argument("--out_prefix", dest="out_prefix", action="store", default='validation',
+                    help="Output file name prefix.", type=str)
 
-arg_simulate_target = parser.add_argument_group('Options for target (y) simulation')
-arg_simulate_target.add_argument("-y", "--target_type", dest="target_type", action="store", default=0,
-                                 help="Levels of target variable. 0 means continuous (default: 0)", type=int)
-arg_simulate_target.add_argument("--ts_ratio_y", dest="ts_ratio_y", action="store", default=0.6,
-                                 help="Ratio of true signal in in y (default: 0.6)", type=float)
-arg_simulate_target.add_argument("--cs_ratio_y", dest="cs_ratio_y", action="store", default=0.0,
-                                 help="Ratio of confounder signal in in y (default: 0.0)", type=float)
+parser.add_argument("--out", dest="out_file", action="store", default=None,
+                    help="Output file name. Overrides --out_prefix", type=str)
 
-arg_simulate_confounder = parser.add_argument_group('Options for confounder (c) simulation')
-arg_simulate_confounder.add_argument("-c", "--confound_type", dest="confound_type", action="store", default=0,
-                                     help="Levels of confounder variable. 0 means continuous (default: 0)", type=int)
-arg_simulate_confounder.add_argument("--ts_ratio_c", dest="ts_ratio_c", action="store", default=0.2,
-                                     help="Ratio of true signal in in c (default: 0.0)", type=float)
-arg_simulate_confounder.add_argument("--cs_ratio_c", dest="cs_ratio_c", action="store", default=0.7,
-                                     help="Ratio of confounder signal in in c (default: 0.8)", type=float)
 
-arg_simulate_feature = parser.add_argument_group('Options for feature (X) simulation')
-arg_simulate_feature.add_argument("-p", "--p", "--number-of-features", dest="n_features", action="store",
-                                  default=20,
-                                  help="Number of features (default: 20)", type=int)
-arg_simulate_feature.add_argument("--ts_ratio_x", dest="ts_ratio_X", action="store", default=0.6,
-                                  help="Ratio of true signal in in X (default: 0.6)", type=float)
-arg_simulate_feature.add_argument("--cs_ratio_x", dest="cs_ratio_X", action="store", default=0.0,
-                                  help="Ratio of confounder signal in in X (default: 0.0)", type=float)
-arg_simulate_feature.add_argument("--sparsity", dest="dirichlet_sparsity", action="store", default=1.0,
-                                  help="Sparsity of the feature matrix, "
-                                       "as determined by the Dirichlet-alpha (default: 1.0)",
-                                  type=float)
-arg_simulate_feature.add_argument("--corr", dest="X_corr", action="store", default=0.0,
-                                  help="Correlation of the noise in the feature matrix (default: 0.0)", type=float)
-
-arg_ml = parser.add_argument_group('Options for the ML-model')
-arg_ml.add_argument("--models", dest="models", action="store",
-                    default='RidgeCV,LassoCV,RandomForestRegressor',
-                    help="Models to train. Possible values: RidgeCV,LassoCV,RandomForestRegressor. "
-                         "Defauls: 'RidgeCV,LassoCV,RandomForestRegressor'",
-                    type=str)
-
-arg_confound_test = parser.add_argument_group('Options confound testing')
-arg_confound_test.add_argument("--num_perms", dest="num_perms", action="store",
-                               default=1000,
-                               help="Number of permutations. Default: 1000",
-                               type=int)
 
 if __name__ == '__main__':
     args = parser.parse_args()
 
-    if args.header:
-        print("p, r2_y_c, r2_y_c, r2_y_yhat,"
-              "random_seed, n,"
-              "ts_ratio_y, cs_ratio_y,"
-              "ts_ratio_c, cs_ratio_c,"
-              "ts_ratio_X, cs_ratio_X,"
-              "n_features,"
-              "X_corr,"
-              "dirichlet_sparsity,"
-              "model,"
-              "num_perms"
-              )
-        exit(0)
+    if args.mode == 1:  # option 3: partial
+        ################# default simulation parameters #########################
+        confound_test = test_partially_confounded
 
-    for r in range(args.repeat):
+        repetitions = 1
+        num_perms = 100
 
-        if args.random_seed is not None:
-            args.random_seed += 1
+        all_n = [50, 100, 500, 1000]
 
-        # simulation
-        y, c, X = simulate_y_c_X(args.ts_ratio_y, args.cs_ratio_y,
-                                 args.ts_ratio_c, args.cs_ratio_c,
-                                 args.ts_ratio_X, args.cs_ratio_X,
-                                 args.n_features, args.X_corr,
-                                 args.dirichlet_sparsity,
-                                 n=args.n, random_state=args.random_seed)
+        all_cov_y_c = [0, 0.2, 0.4, 0.6, 0.8]
 
-        # do nested cross validations
-        yhat = {}
-        if 'RidgeCV' in args.models:
-            yhat['RidgeCV'] = cross_val_predict(RidgeCV(), X, y, n_jobs=args.n_jobs)
-        if 'LassoCV' in args.models:
-            yhat['LassoCV'] = cross_val_predict(LassoCV(), X, y, n_jobs=args.n_jobs)
-        if 'RandomForestRegressor' in args.models:
-            yhat['RandomForestRegressor'] = cross_val_predict(RandomForestRegressor(random_state=args.random_seed),
-                                                              X, y, n_jobs=args.n_jobs)
+        all_c_to_y_ratio_in_yhat = [0, 0.5, 1, 2]
 
-        # do confounder testing
-        for model in yhat:
-            test_res = confound_test(y, yhat[model], c, num_perms=args.num_perms,
-                                     progress=False, n_jobs=args.n_jobs, random_state=args.random_seed)
+        all_yc_in_yhat = [0, 0.3, 0.6, 0.9]
 
-            res = [test_res.p, test_res.r2_y_c, test_res.r2_y_c, test_res.r2_y_yhat,
-                   args.random_seed, args.n,
-                   args.ts_ratio_y, args.cs_ratio_y,
-                   args.ts_ratio_c, args.cs_ratio_c,
-                   args.ts_ratio_X, args.cs_ratio_X,
-                   args.n_features,
-                   args.X_corr,
-                   args.dirichlet_sparsity,
-                   model,
-                   args.num_perms]
-            print(','.join([str(element) for element in res])
-)
+        #########################################################################
+    elif args.mode == 2:  #option 1: full
+        ################# default simulation parameters #########################
+        confound_test = test_fully_confounded()
+
+        repetitions = 100
+        num_perms = 1000
+
+        all_n = [50, 100, 500, 1000]
+
+        all_cov_y_c = [0, 0.2, 0.4, 0.6, 0.8]
+
+        all_c_to_y_ratio_in_yhat = [0, 0.5, 1, 2]
+
+        all_yc_in_yhat = [0, 0.3, 0.6, 0.9]
+
+        #########################################################################
+    else:
+        raise AttributeError('No such mode', args.mode)
+
+    print('Number of simulations:', np.prod([len(i) for i in [
+        all_cov_y_c,
+        all_yc_in_yhat,
+        all_c_to_y_ratio_in_yhat,
+        all_n]]) * repetitions)
+
+    all_param_configurations = itertools.product(
+        all_cov_y_c,
+        all_yc_in_yhat,
+        all_c_to_y_ratio_in_yhat,
+        all_n)
+
+    rng = np.random.default_rng(args.random_seed)
+
+    results = pd.DataFrame(columns=["p", "r2_y_c", "r2_yhat_c", "r2_y_yhat",
+                                    "n", "c_to_y_ratio_in_yhat", "yc_in_yhat", "cov_y_c",
+                                    "num_perms", "random_seed"])
+
+    for cov_y_c, yc_in_yhat, c_to_y_ratio_in_yhat, n in tqdm(list(all_param_configurations)):
+        y_ratio_yhat = np.round(yc_in_yhat / (c_to_y_ratio_in_yhat + 1), 2)
+        c_ratio_yhat = np.round(c_to_y_ratio_in_yhat * yc_in_yhat / (c_to_y_ratio_in_yhat + 1), 2)
+
+
+        def workhorse(_random_state):
+            # simulate
+            y, c, yhat = simulate_y_c_yhat(
+                cov_y_c=cov_y_c,
+                y_ratio_yhat=y_ratio_yhat,
+                c_ratio_yhat=c_ratio_yhat,
+                n=n,
+                random_state=_random_state)
+
+            # introduce non-normality
+            y = sinh_arcsinh(y, args.delta_yc, args.epsilon_yc)
+            c = sinh_arcsinh(c, args.delta_yc, args.epsilon_yc)
+            yhat = sinh_arcsinh(yhat, args.delta_yhat, args.epsilon_yhat)
+
+            # is it categorical?
+            # right now only binary variables can be simulated
+            if args.cat_yyhat:
+                y = y > 0
+                yhat = yhat > 0
+            if args.cat_c:
+                c = c > 0
+
+            # test
+            res = confound_test(y, yhat, c,
+                                cat_y=args.cat_yyhat,
+                                cat_yhat=args.cat_yyhat,
+                                cat_c=args.cat_c,
+                                num_perms=num_perms,
+                                random_state=_random_state,
+                                n_jobs=1,
+                                progress=False)
+            # return
+            return res.p, res.r2_y_c, res.r2_yhat_c, res.r2_y_yhat, _random_state
+
+
+        random_sates = rng.integers(np.iinfo(np.int32).max, size=repetitions)
+        p, r2_y_c, r2_yhat_c, r2_y_yhat, random_seed = zip(*
+                                                           Parallel(n_jobs=-1)(
+                                                               delayed(workhorse)(rs) for rs in random_sates)
+                                                           )
+
+        # create DataFrame and save it
+        results = results.append(pd.DataFrame({
+            "p": p,
+            "r2_y_c": r2_y_c,
+            "r2_yhat_c": r2_yhat_c,
+            "r2_y_yhat": r2_y_yhat,
+            "n": n,
+            "c_to_y_ratio_in_yhat": c_to_y_ratio_in_yhat,
+            "yc_in_yhat": yc_in_yhat,
+            "cov_y_c": cov_y_c,
+            "num_perms": num_perms,
+            "random_seed": list(random_seed)
+        }), ignore_index=True)
+
+        # update file after every iteration...
+        if args.out_file is None:
+            args = '_'.join(str(args)[10:].split(', '))[:-1]
+            filename = args.out_prefix + '_' + args + '.csv'
+            results.to_csv(sys.path[0] + '/data_out/' + filename)
+        else:
+            results.to_csv(args.out_file)
 
