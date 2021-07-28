@@ -164,6 +164,10 @@ if __name__ == '__main__':
                                                                delayed(workhorse)(rs) for rs in random_sates)
                                                            )
 
+        if args.mode == 'partial':
+            name = "c_to_y_ratio_in_yhat"
+        elif args.mode == 'full':
+            name = "y_to_c_ratio_in_yhat"
         # create DataFrame and save it
         results = results.append(pd.DataFrame({
             "p": p,
@@ -171,7 +175,7 @@ if __name__ == '__main__':
             "r2_yhat_c": r2_yhat_c,
             "r2_y_yhat": r2_y_yhat,
             "n": n,
-            "c_to_y_ratio_in_yhat": c_to_y_ratio_in_yhat,
+            name: yc_ratio,
             "yc_in_yhat": yc_in_yhat,
             "cov_y_c": cov_y_c,
             "num_perms": num_perms,
