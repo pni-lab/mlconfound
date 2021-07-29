@@ -140,10 +140,10 @@ if __name__ == '__main__':
             # is it categorical?
             # right now only binary variables can be simulated
             if args.cat_yyhat:
-                y = y > 0
-                yhat = yhat > 0
+                y = (y > 0).astype(int)
+                yhat = (yhat > 0).astype(int)
             if args.cat_c:
-                c = c > 0
+                c = (c > 0).astype(int)
 
             # test
             res = confound_test(y, yhat, c,

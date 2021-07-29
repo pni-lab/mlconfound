@@ -33,7 +33,7 @@ def _r2_cat_cat(x, y):
         'x': x,
         'y': y
     })
-    fit = mnlogit('C(y) ~ C(x)', data=df).fit(disp=0)
+    fit = mnlogit('y ~ C(x)', data=df).fit(disp=0)
     return fit.prsquared
 
 
@@ -67,9 +67,9 @@ def _conditional_log_likelihood_gaussian(X0, Z, X_cat=False, Z_cat=False):
 
     if X_cat:
         if Z_cat:
-            fit = mnlogit('C(X) ~ C(Z)', data=df).fit(disp=0)
+            fit = mnlogit('X ~ C(Z)', data=df).fit(disp=0)
         else:
-            fit = mnlogit('C(X) ~ Z', data=df).fit(disp=0)
+            fit = mnlogit('X ~ Z', data=df).fit(disp=0)
         mat = np.log(fit.predict(df))  # predict returns class probabilities
         mat.index = df.Z
         labels = np.unique(df.X)
