@@ -82,9 +82,9 @@ def _conditional_log_likelihood_gaussian(X0, Z, X_cat=False, Z_cat=False):
             fit = ols('X ~ Z', data=df).fit()
         mu = np.array(fit.predict(df))
         resid = X0 - mu
-        sigma2 = np.repeat(np.power(np.std(resid), 2), len(Z))
+        sigma = np.repeat(np.std(resid), len(Z))
         # X | Z = Z_i ~ N(mu[i], sig2[i])
-        return np.array([norm.logpdf(X0, loc=m, scale=sigma2) for m in mu]).T
+        return np.array([norm.logpdf(X0, loc=m, scale=sigma) for m in mu]).T
     # return -np.power(X0, 2)[:, None] * (1 / 2 / sigma2)[None, :] + X0[:, None] * (mu / sigma2)[None, :]
 
 
