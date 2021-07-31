@@ -147,7 +147,7 @@ def cpt(x, y, z, num_perms=1000, cat_x=False, cat_y=False, cat_z=False, mcmc_nst
 
     x = np.array(x)
 
-    r2_x_z = r2_xy(x, y)
+    r2_x_z = r2_xz(x, z)
     r2_y_z = r2_yz(y, z)
     r2_x_y = r2_xy(x, y)
 
