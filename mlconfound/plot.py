@@ -35,7 +35,8 @@ def plot_graph(confound_test_results, y_name='y', yhat_name='<y&#770;>', c_name=
         mode = 'partial'
     else:
         mode = 'full'
-    plot_r2_graph(confound_test_results.r2_y_c,
+
+    return plot_r2_graph(confound_test_results.r2_y_c,
                          confound_test_results.r2_yhat_c,
                          confound_test_results.r2_y_yhat,
                          confound_test_results.p,
@@ -56,8 +57,6 @@ def plot_r2_graph(r2_y_c, r2_yhat_c, r2_y_yhat, p_yhat_c=None,
                   minp=0.0001):
     dot = graphviz.Graph()
     dot.attr(rankdir='LR', size=str(size) + ',' + str(size))
-
-    print(mode)
 
     if mode != 'partial' and mode != 'full':
         raise AttributeError("Mode must be either 'partial' or 'full'.")
