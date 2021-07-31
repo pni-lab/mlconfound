@@ -40,7 +40,7 @@ def plot_graph(confound_test_results, y_name='y', yhat_name='<y&#770;>', c_name=
                          confound_test_results.r2_y_yhat,
                          confound_test_results.p,
                          y_name=y_name, yhat_name=yhat_name, c_name=c_name,
-                         mode=mode
+                         mode=mode,
                          outfile_base=outfile_base,
                          size=size,
                          precision=precision)
