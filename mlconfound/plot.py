@@ -77,9 +77,9 @@ def plot_r2_graph(r2_y_c, r2_yhat_c, r2_y_yhat, p_yhat_c=None,
         dot.edge('c', 'yhat', label=str(np.round(r2_yhat_c, precision)))
     dot.edge('c', 'y', label=str(np.round(r2_y_c, precision)))
     if mode == 'full':
-        dot.edge('y', 'yhat', label=str(np.round(r2_y_yhat, precision)))
+        dot.edge('y', 'yhat', label=str(np.round(r2_y_yhat, precision)) + pvalstr, style="dashed")
     else:
-        dot.edge('y', 'yhat', label=str(np.round(r2_y_yhat, precision))+ pvalstr, style = "dashed")
+        dot.edge('y', 'yhat', label=str(np.round(r2_y_yhat, precision)))
 
 
     if outfile_base is not None:
