@@ -5,11 +5,11 @@ with open("README.md", "r") as fh:
 
 setuptools.setup(
     name='mlconfound',
-    version='0.7',
-    packages=setuptools.find_packages(),
-    scripts=[],
+    version='0.7.1',
+    packages=['mlconfound'], #setuptools.find_packages(),
+    #scripts=[],
     author="Tamas Spisak",
-    author_email="tamas.spisak@uk-essen.de",
+    author_email="tamas.sisak@uk-essen.de",
     description="Tools for analyzing and quantifying effects of counfounder variables "
                 "on machine learning model predictions.",
     long_description=long_description,
@@ -31,5 +31,5 @@ setuptools.setup(
         "Programming Language :: Python :: 3",
         "License :: OSI Approved :: GNU General Public License v3 or later (GPLv3+)",
         "Operating System :: OS Independent",
-    ],
+    ]
 )
