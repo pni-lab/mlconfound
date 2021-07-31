@@ -4,6 +4,8 @@ import matplotlib.pyplot as plt
 import numpy as np
 import seaborn as sns
 
+from .stats import ResultsPartiallyConfounded, ResultsFullyConfounded
+
 
 def _pval_to_str(pval, alpha=0.05, floor=0.0001):
     if pval is None:
@@ -29,11 +31,16 @@ def plot_null_dist(confound_test_results, **kwargs):
 
 def plot_graph(confound_test_results, y_name='y', yhat_name='<y&#770;>', c_name='c', outfile_base=None,
                size=4.5, precision=3):
-    return plot_r2_graph(confound_test_results.r2_y_c,
+    if isinstance(confound_test_results, ResultsPartiallyConfounded):
+        mode = 'partial'
+    else:
+        mode = 'full'
+    plot_r2_graph(confound_test_results.r2_y_c,
                          confound_test_results.r2_yhat_c,
                          confound_test_results.r2_y_yhat,
                          confound_test_results.p,
                          y_name=y_name, yhat_name=yhat_name, c_name=c_name,
+                         mode=mode
                          outfile_base=outfile_base,
                          size=size,
                          precision=precision)
@@ -41,6 +48,7 @@ def plot_graph(confound_test_results, y_name='y', yhat_name='<y&#770;>', c_name=
 
 def plot_r2_graph(r2_y_c, r2_yhat_c, r2_y_yhat, p_yhat_c=None,
                   y_name='y', yhat_name='yhat', c_name='c',
+                  mode='partial',
                   outfile_base=None,
                   size=4.5,
                   precision=3,
@@ -48,6 +56,9 @@ def plot_r2_graph(r2_y_c, r2_yhat_c, r2_y_yhat, p_yhat_c=None,
                   minp=0.0001):
     dot = graphviz.Graph()
     dot.attr(rankdir='LR', size=str(size) + ',' + str(size))
+
+    if mode != 'partial' or mode != 'full':
+        raise AttributeError("Mode must be either 'partial' or 'full'.")
 
     if p_yhat_c < alpha:
         star = '*'
@@ -59,9 +70,16 @@ def plot_r2_graph(r2_y_c, r2_yhat_c, r2_y_yhat, p_yhat_c=None,
     dot.node('y', label=y_name)
     dot.node('yhat', label=yhat_name)
 
-    dot.edge('c', 'yhat', label=str(np.round(r2_yhat_c, precision)) + pvalstr, style="dashed")
+    if mode == 'partial':
+        dot.edge('c', 'yhat', label=str(np.round(r2_yhat_c, precision)) + pvalstr, style="dashed")
+    else:
+        dot.edge('c', 'yhat', label=str(np.round(r2_yhat_c, precision)))
     dot.edge('c', 'y', label=str(np.round(r2_y_c, precision)))
-    dot.edge('y', 'yhat', label=str(np.round(r2_y_yhat, precision)))
+    if mode == 'full':
+        dot.edge('y', 'yhat', label=str(np.round(r2_y_yhat, precision)))
+    else:
+        dot.edge('y', 'yhat', label=str(np.round(r2_y_yhat, precision))+ pvalstr, style = "dashed")
+
 
     if outfile_base is not None:
         dot.render(filename=outfile_base + '.dot')  # saves dot and pdf
