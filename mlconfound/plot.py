@@ -57,7 +57,9 @@ def plot_r2_graph(r2_y_c, r2_yhat_c, r2_y_yhat, p_yhat_c=None,
     dot = graphviz.Graph()
     dot.attr(rankdir='LR', size=str(size) + ',' + str(size))
 
-    if mode != 'partial' or mode != 'full':
+    print(mode)
+
+    if mode != 'partial' and mode != 'full':
         raise AttributeError("Mode must be either 'partial' or 'full'.")
 
     if p_yhat_c < alpha:
