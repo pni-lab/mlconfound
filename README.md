@@ -17,7 +17,7 @@ pip install git+https://github.com/pni-lab/mlconfound
 
 from mlconfound.stats import confound_test
 
-confound_test(y, yhat, c)
+test_partially_confounded(y, yhat, c)
 ````
 
 See `notebooks/quickstart.ipynb` for more details.

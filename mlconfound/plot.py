@@ -29,8 +29,7 @@ def plot_null_dist(confound_test_results, **kwargs):
     return g
 
 
-def plot_graph(confound_test_results, y_name='y', yhat_name='<y&#770;>', c_name='c', outfile_base=None,
-               size=4.5, precision=3):
+def plot_graph(confound_test_results, y_name='y', yhat_name='<y&#770;>', c_name='c', outfile_base=None, precision=3):
     if isinstance(confound_test_results, ResultsPartiallyConfounded):
         mode = 'partial'
     else:
@@ -43,7 +42,6 @@ def plot_graph(confound_test_results, y_name='y', yhat_name='<y&#770;>', c_name=
                          y_name=y_name, yhat_name=yhat_name, c_name=c_name,
                          mode=mode,
                          outfile_base=outfile_base,
-                         size=size,
                          precision=precision)
 
 
@@ -51,12 +49,11 @@ def plot_r2_graph(r2_y_c, r2_yhat_c, r2_y_yhat, p_yhat_c=None,
                   y_name='y', yhat_name='yhat', c_name='c',
                   mode='partial',
                   outfile_base=None,
-                  size=4.5,
                   precision=3,
                   alpha=0.05,
                   minp=0.0001):
     dot = graphviz.Graph()
-    dot.attr(rankdir='LR', size=str(size) + ',' + str(size))
+    dot.attr(rankdir='LR')
 
     if mode != 'partial' and mode != 'full':
         raise AttributeError("Mode must be either 'partial' or 'full'.")
@@ -80,7 +77,6 @@ def plot_r2_graph(r2_y_c, r2_yhat_c, r2_y_yhat, p_yhat_c=None,
         dot.edge('y', 'yhat', label=str(np.round(r2_y_yhat, precision)) + pvalstr, style="dashed")
     else:
         dot.edge('y', 'yhat', label=str(np.round(r2_y_yhat, precision)))
-
 
     if outfile_base is not None:
         dot.render(filename=outfile_base + '.dot')  # saves dot and pdf
