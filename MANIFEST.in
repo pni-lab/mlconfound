@@ -1,3 +1,6 @@
 include versioneer.py
 include _version.py
 include mlconfound/_version.py
+include README.md
+include LICENSE
+include requirements.txt

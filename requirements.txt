@@ -13,3 +13,4 @@ tqdm>=4.62.0
 myst_parser>=0.15
 versioneer>=0.20
 numpydoc>=1.1
+nbsphinx>=0.8.6
