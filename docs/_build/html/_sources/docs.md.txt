@@ -1,5 +1,6 @@
-# Documentation  
------------------------------------
+# Documentation
+----------------------------------
+
 ## mlconfound.stats
 
 ```{eval-rst}
