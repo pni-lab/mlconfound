@@ -1,6 +1,6 @@
 [tool.poetry]
 name = "mlconfound"
-version = "0.9.3"
+version = "0.9.4"
 description = "Tools for analyzing and quantifying effects of counfounder variables on machine learning model predictions."
 authors = ["Tamas Spisak <tamas.spisak@uni-due.de>"]
 license = "GPL-3.0-or-later"
