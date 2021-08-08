@@ -6,13 +6,11 @@
 [![GitHub issues](https://img.shields.io/github/issues/pni-lab/mlconfound.svg)](https://GitHub.com/pni-lab/mlconfound/issues/)
 [![GitHub issues-closed](https://img.shields.io/github/issues-closed/pni-lab/mlconfound.svg)](https://GitHub.com/pni-lab/mlconfound/issues?q=is%3Aissue+is%3Aclosed)
 
-Tools for analyzing and quantifying effects of counfounder variables "
-                "on machine learning model predictions.
+Tools for analyzing and quantifying effects of counfounder variables on machine learning model predictions.
 ## Install
 ````
-pip install git+https://github.com/pni-lab/mlconfound
+pip install mlconfound
 ````
-*pipy support coming soon*
 
 ## Usage
 

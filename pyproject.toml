@@ -5,6 +5,7 @@ description = "Tools for analyzing and quantifying effects of counfounder variab
 authors = ["Tamas Spisak <tamas.spisak@uni-due.de>"]
 license = "GPL-3.0-or-later"
 repository = "https://github.com/pni-lab/mlconfound"
+homepage = "https://mlconfound.readthedocs.io"
 documentation = "https://mlconfound.readthedocs.io"
 readme = 'README.md'
 keywords = [
