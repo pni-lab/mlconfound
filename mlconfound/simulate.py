@@ -26,9 +26,9 @@ def sinh_arcsinh(x, delta=1, epsilon=0):
     --------
     See `validation/simulation.py` for an application example.
 
-    >>> sinh_arcsinh([-1, -0.5, -0.1, 0.1, 0.5, 1], delta=2, epsilon=1)
-    array([-7.8900947 , -3.48801839, -1.50886059, -0.88854985, -0.03758519,
-        0.83888754])
+    >>> result = sinh_arcsinh([-1, -0.5, -0.1, 0.1, 0.5, 1], delta=2, epsilon=1)
+    >>> print(result)
+    [-7.8900947  -3.48801839 -1.50886059 -0.88854985 -0.03758519  0.83888754]
 
     See Also
     --------

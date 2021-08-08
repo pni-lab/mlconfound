@@ -311,7 +311,7 @@ def test_partially_confounded(y, yhat, c, num_perms=1000, cat_y=False, cat_yhat=
     See `notebooks/quickstart.ipynb` for more detailed examples.
 
     >>> test_partially_confounded(y=[1,2,3,4,5,6], yhat=[1.5,2.3,2.9,4.2,5,5.7], c=[3,5,4,6,1,2], random_state=42).p
-    0.692
+    0.693
 
     See Also
     --------
