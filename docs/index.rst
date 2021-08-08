@@ -9,7 +9,6 @@ Welcome to mlconfound's documentation!
 .. toctree::
    about.md
    install.md
-   quickstart.ipynb
    docs.md
    :maxdepth: 1
    :caption: Contents:
