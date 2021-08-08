@@ -23,5 +23,5 @@ test_partially_confounded(y, yhat, c)
 
 See documentation for more details.
 
-## Documentation
-https://mlconfound.readthedocs.io/en/latest/ [![Documentation Status](https://readthedocs.org/projects/mlconfound/badge/?version=latest)](https://mlconfound.readthedocs.io/en/latest/?badge=latest)
+## Documentation [![Documentation Status](https://readthedocs.org/projects/mlconfound/badge/?version=latest)](https://mlconfound.readthedocs.io/en/latest/?badge=latest)
+https://mlconfound.readthedocs.io/en/latest/ 
