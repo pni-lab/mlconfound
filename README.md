@@ -19,9 +19,9 @@ pip install mlconfound
 # yhat: prediction
 # c   : confounder
 
-from mlconfound.stats import test_partially_confounded
+from mlconfound.stats import partial_confound_test
 
-test_partially_confounded(y, yhat, c)
+partial_confound_test(y, yhat, c)
 ````
 
 Read the docs for more details.

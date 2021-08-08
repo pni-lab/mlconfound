@@ -12,7 +12,7 @@ import os
 path = os.path.dirname(os.path.abspath(__file__))
 import sys
 sys.path.insert(0, sys.path[0] + '/..')
-from mlconfound.stats import test_fully_confounded, test_partially_confounded
+from mlconfound.stats import full_confound_test, partial_confound_test
 from mlconfound.simulate import simulate_y_c_yhat, sinh_arcsinh
 
 parser = argparse.ArgumentParser(description="Validate 'mlconfound' on simulated data.")
@@ -61,7 +61,7 @@ if __name__ == '__main__':
 
     if args.mode == 'partial':  # option 3: partial
         ################# default simulation parameters #########################
-        confound_test = test_partially_confounded
+        confound_test = partial_confound_test
 
         repetitions = 100
         num_perms = 1000
@@ -78,7 +78,7 @@ if __name__ == '__main__':
         #########################################################################
     elif args.mode == 'full':  #option 1: full
         ################# default simulation parameters #########################
-        confound_test = test_fully_confounded
+        confound_test = full_confound_test
 
         repetitions = 100
         num_perms = 1000

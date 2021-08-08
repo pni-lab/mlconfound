@@ -19,6 +19,29 @@ def _pval_to_str(pval, alpha=0.05, floor=0.0001):
 
 
 def plot_null_dist(confound_test_results, **kwargs):
+    """
+    Plot the histogram of the permutation-based null distribution of the confounder test.
+
+    Parameters
+    ----------
+    confound_test_results: namedtuple
+        The object returned by `test_partially_confounded` or `test_fully_confounded`.
+    kwargs : dict
+        Additional named argumnets, passed to seaborn.histplot.
+
+    Returns
+    --------
+     matplotlib.axes.Axes
+        The matplotlib axes containing the plot.
+
+    See Also
+    ---------
+    plot
+
+
+    -------
+
+    """
     if not hasattr(confound_test_results, 'null_distribution'):
         raise RuntimeError("No null distribution data is available. "
                            "Re-run 'confound_test' with 'return_null_dist=True'!")
@@ -30,6 +53,30 @@ def plot_null_dist(confound_test_results, **kwargs):
 
 
 def plot_graph(confound_test_results, y_name='y', yhat_name='<y&#770;>', c_name='c', outfile_base=None, precision=3):
+    """
+    Plot confounder test results as a graph depicting the involved variables.
+
+    Parameters
+    ----------
+    confound_test_results : namedtuple
+        The object returned by `test_partially_confounded` or `test_fully_confounded`.
+    y_name: str
+        Name of the target variable.
+    yhat_name: str
+        Name for the model predictions.
+    c_name: str
+        Name of the confounder variable.
+    outfile_base: str
+        Path for output files, without extension (None: figure not saved).
+    precision: int
+        Precision for r squared values.
+
+    Returns
+    -------
+    dot
+        The graphviz object to plot.
+
+    """
     if isinstance(confound_test_results, ResultsPartiallyConfounded):
         mode = 'partial'
     else:

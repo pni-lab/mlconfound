@@ -173,7 +173,7 @@ CptResults = namedtuple('CptResults', ['r2_x_z',
                                        'null_distribution'])
 
 
-def cpt(x, y, z, t_xy, t_xz, t_yz, condlike_f, num_perms=1000, mcmc_nstep=50, cond_dist_method='GaussianReg',
+def cpt(x, y, z, t_xy, t_xz, t_yz, condlike_f, num_perms=1000, mcmc_steps=50, cond_dist_method='GaussianReg',
         return_null_dist=False, random_state=None, progress=True, n_jobs=-1):
     if cond_dist_method != 'GaussianReg':
         assert NotImplementedError("Currently only regression-based Gaussian conditional distribution estimation "
@@ -189,11 +189,11 @@ def cpt(x, y, z, t_xy, t_xz, t_yz, condlike_f, num_perms=1000, mcmc_nstep=50, co
     r2_x_y = t_xy(x, y)
 
     cond_log_lik_mat = condlike_f(x, z)
-    Pi_init = _generate_X_CPT_MC(mcmc_nstep, cond_log_lik_mat, np.arange(len(x), dtype=int), random_state=random_state)
+    Pi_init = _generate_X_CPT_MC(mcmc_steps, cond_log_lik_mat, np.arange(len(x), dtype=int), random_state=random_state)
 
     def workhorse(_random_state):
         # batched os job_batch for efficient parallelization
-        Pi = _generate_X_CPT_MC(mcmc_nstep, cond_log_lik_mat, Pi_init, random_state=_random_state)
+        Pi = _generate_X_CPT_MC(mcmc_steps, cond_log_lik_mat, Pi_init, random_state=_random_state)
         return t_xy(x[Pi], y)
 
     with tqdm_joblib(tqdm(desc='Permuting', total=num_perms, disable=not progress)):
@@ -223,9 +223,91 @@ ResultsFullyConfounded = namedtuple('ResultsFullyConfounded', ['r2_y_c',
                                                                'null_distribution'])
 
 
-def test_fully_confounded(y, yhat, c, num_perms=1000, cat_y=False, cat_yhat=False, cat_c=False, mcmc_nstep=50,
-                          cond_dist_method='GaussianReg',
-                          return_null_dist=False, random_state=None, progress=True, n_jobs=-1):
+def full_confound_test(y, yhat, c, num_perms=1000, cat_y=False, cat_yhat=False, cat_c=False, mcmc_steps=50,
+                       return_null_dist=False, random_state=None, progress=True, n_jobs=-1):
+    """
+       The Full Confounder Test, to test for full confounder bias in machine learning models,
+       based on the target variable, the confounder and the model predictions. Low p-value indicates that the model
+       predictions are not fully driven by the confoudner.
+
+       Notes
+       -----
+       Performs partial confounder test, a statistical test described in [1]_ and
+       based on the conditional permutation test for independence [2]_.
+       The null hypothesis of the test is that the model predictions are independent of the target variable,
+       given the confounder variable, i.e. the model is entirely driven by the confounder.
+       A low p-value therefore indicates that the model is not fully driven by the confounder.
+
+       The method has no assumptions about the distribution of yhat, but assumes normality for the conditional distribution
+       (c | y). It is however, fairly robust to violating this assumptions, see [1]_.
+
+       Parameters
+       ----------
+       y : array_like
+           Target variable.
+       yhat : array_like
+           Predictions.
+       c : array_like
+           Confounder variable.
+       num_perms : int
+           Number of conditional permutations.
+       cat_y : bool
+           Flag for categorical target variable (classification).
+       cat_yhat : bool
+           Flag for categorical predictions (classification). Must be false, if class probabilities are used.
+       cat_c : bool
+           Flag for categorical confounder variable (e.g center, sex or batch).
+       mcmc_steps : int
+           Number of steps for the Markov-chain Monte Carlo sampling.
+       return_null_dist : bool
+           Whether permuted null distribution should be returned (e.g. for plotting purposes).
+       random_state : int or None
+           Random state for the conditional permutation.
+       progress : bool
+           Whether to print out progress bar.
+       n_jobs : int
+           Number of parallel jobs (-1: use all available processors).
+
+
+       Returns
+       -------
+       ResultsFullyConfounded
+           Named tuple with the fields:
+
+           - "r2_y_c": coefficient-of-determination between y and c,
+
+           - "r2_y_yhat": coefficient-of-determination between y and yhat,
+
+           - "r2_yhat_c": coefficient-of-determination between yhat and c,
+
+           - "p": p-value,
+
+           - "p_ci": binomial 95% confidence interval for the p-value,
+
+           - "null_distribution": numpy.ndarray containing the permuted null distribution or None depending on teh value of
+                   return_null_dist.
+
+       Examples
+       --------
+       See `notebooks/quickstart.ipynb` for more detailed examples.
+
+       >>> partial_confound_test(y=[1,2,3,4,5,6], yhat=[1.5,2.3,2.9,4.2,5,5.7], c=[3,5,4,6,1,2], random_state=42).p
+       0.693
+
+       See Also
+       --------
+       test_partially_confounded
+
+       References
+       ----------
+       [1] Spisak, Tamas "A conditional permutation-based approach to test confounder effect
+        and center-bias in machine learning models", in prep.
+
+       [2] Berrett, Thomas B., et al. "The conditional permutation test for independence
+       while controlling for confounders."
+       Journal of the Royal Statistical Society: Series B (Statistical Methodology) 82.1 (2020): 175-197.
+
+    """
 
     r2_y_yhat = _r2_factory(cat_y, cat_yhat, reverse_cat=True)
     r2_y_c = _r2_factory(cat_y, cat_c, reverse_cat=True)
@@ -235,7 +317,7 @@ def test_fully_confounded(y, yhat, c, num_perms=1000, cat_y=False, cat_yhat=Fals
 
     return ResultsFullyConfounded(
         *cpt(x=y, y=yhat, z=c, num_perms=num_perms, t_xy=r2_y_yhat, t_xz=r2_y_c, t_yz=r2_yhat_c, condlike_f=condlike_f,
-             mcmc_nstep=mcmc_nstep, return_null_dist=return_null_dist, random_state=random_state,
+             mcmc_steps=mcmc_steps, return_null_dist=return_null_dist, random_state=random_state,
              progress=progress, n_jobs=n_jobs))
 
 
@@ -247,11 +329,12 @@ ResultsPartiallyConfounded = namedtuple('ResultsPartiallyConfounded', ['r2_y_c',
                                                                        'null_distribution'])
 
 
-def test_partially_confounded(y, yhat, c, num_perms=1000, cat_y=False, cat_yhat=False, cat_c=False, mcmc_nstep=50,
-                              cond_dist_method='GaussianReg',
-                              return_null_dist=False, random_state=None, progress=True, n_jobs=-1):
+def partial_confound_test(y, yhat, c, num_perms=1000, cat_y=False, cat_yhat=False, cat_c=False, mcmc_steps=50,
+                          return_null_dist=False, random_state=None, progress=True, n_jobs=-1):
     """
-    Partial Confounder Test
+    The Partial Confounder Test, to test partial confounder bias in machine learning models,
+    based on the target variable, the confounder and the model predictions. Low p-value indicates that the model
+    predictions are partially driven by the confoudner.
 
     Notes
     -----
@@ -281,10 +364,8 @@ def test_partially_confounded(y, yhat, c, num_perms=1000, cat_y=False, cat_yhat=
         Flag for categorical predictions (classification). Must be false, if class probabilities are used.
     cat_c : bool
         Flag for categorical confounder variable (e.g center, sex or batch).
-    mcmc_nstep : int
+    mcmc_steps : int
         Number of steps for the Markov-chain Monte Carlo sampling.
-    cond_dist_method {GaussianReg}
-        Method to estimate the conditional distribution. Currently only Gaussian estimation is supported.
     return_null_dist : bool
         Whether permuted null distribution should be returned (e.g. for plotting purposes).
     random_state : int or None
@@ -294,23 +375,30 @@ def test_partially_confounded(y, yhat, c, num_perms=1000, cat_y=False, cat_yhat=
     n_jobs : int
         Number of parallel jobs (-1: use all available processors).
 
+
     Returns
     -------
     ResultsPartiallyConfounded
         Named tuple with the fields:
-        - r2_y_c: coefficient-of-determination between y and c
-        - r2_yhat_c: coefficient-of-determination between yhat and c
-        - r2_y_yhat: coefficient-of-determination between y and yhat
-        - p: p-value
-        - p_ci: binomial 95% confidence interval for the p-value
-        - null_distribution: numpy.ndarray containing the permuted null distribution or None depending on teh value of
-          return_null_dist
+
+        - "r2_y_c": coefficient-of-determination between y and c,
+
+        - "r2_yhat_c": coefficient-of-determination between yhat and c,
+
+        - "r2_y_yhat": coefficient-of-determination between y and yhat,
+
+        - "p": p-value,
+
+        - "p_ci": binomial 95% confidence interval for the p-value,
+
+        - "null_distribution": numpy.ndarray containing the permuted null distribution or None depending on teh value of
+                return_null_dist.
 
     Examples
     --------
     See `notebooks/quickstart.ipynb` for more detailed examples.
 
-    >>> test_partially_confounded(y=[1,2,3,4,5,6], yhat=[1.5,2.3,2.9,4.2,5,5.7], c=[3,5,4,6,1,2], random_state=42).p
+    >>> partial_confound_test(y=[1,2,3,4,5,6], yhat=[1.5,2.3,2.9,4.2,5,5.7], c=[3,5,4,6,1,2], random_state=42).p
     0.693
 
     See Also
@@ -336,5 +424,5 @@ def test_partially_confounded(y, yhat, c, num_perms=1000, cat_y=False, cat_yhat=
 
     return ResultsPartiallyConfounded(
         *cpt(x=c, y=yhat, z=y, num_perms=num_perms, t_xy=r2_c_yhat, t_xz=r2_c_y, t_yz=r2_yhat_y, condlike_f=condlike_f,
-             mcmc_nstep=mcmc_nstep, return_null_dist=return_null_dist, random_state=random_state,
+             mcmc_steps=mcmc_steps, return_null_dist=return_null_dist, random_state=random_state,
              progress=progress, n_jobs=n_jobs))

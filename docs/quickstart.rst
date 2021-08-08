@@ -33,7 +33,7 @@ Import the necessary packages
 
 .. code:: ipython3
 
-    from mlconfound.stats import test_partially_confounded, test_fully_confounded
+    from mlconfound.stats import partial_confound_test
     from mlconfound.simulate import simulate_y_c_yhat
     from mlconfound.plot import plot_null_dist, plot_graph
     
@@ -81,7 +81,7 @@ results.
 
 .. code:: ipython3
 
-    ret=test_partially_confounded(H0_y, H0_yhat, H0_c, return_null_dist=True,
+    ret=partial_confound_test(H0_y, H0_yhat, H0_c, return_null_dist=True,
                       random_state=42)
     #pretty print results
     pd.DataFrame({
@@ -97,7 +97,7 @@ results.
 
 .. parsed-literal::
 
-    Permuting: 100%|██████████| 1000/1000 [00:01<00:00, 544.69it/s]
+    Permuting: 100%|██████████| 1000/1000 [00:02<00:00, 457.42it/s]
 
 
 
@@ -163,7 +163,7 @@ a graphical representation of the results.
 
 
 
-.. image:: _static/quickstart_7_1.png
+.. image:: quickstart_files/quickstart_7_1.png
 
 
 The histogram shows the :math:`R^2` values between the predictions and
@@ -178,7 +178,7 @@ have no evidence against the null (:math:`p=0.8`).
 
 
 
-.. image:: _static/quickstart_9_0.svg
+.. image:: quickstart_files/quickstart_9_0.svg
 
 
 
@@ -196,7 +196,7 @@ confounded model.
     H1_y, H1_c, H1_yhat = simulate_y_c_yhat(cov_y_c=0.3,
                           y_ratio_yhat=0.4, c_ratio_yhat=0.1,
                           n=500, random_state=42)
-    ret=test_partially_confounded(H1_y, H1_yhat, H1_c, num_perms=1000, return_null_dist=True,
+    ret=partial_confound_test(H1_y, H1_yhat, H1_c, num_perms=1000, return_null_dist=True,
                       random_state=42, n_jobs=-1)
     
     #pretty print results
@@ -212,7 +212,7 @@ confounded model.
 
 .. parsed-literal::
 
-    Permuting: 100%|██████████| 1000/1000 [00:00<00:00, 1101.98it/s]
+    Permuting: 100%|██████████| 1000/1000 [00:01<00:00, 759.92it/s]
 
 
 
@@ -270,12 +270,12 @@ confounded model.
 
 
 
-.. image:: _static/quickstart_13_0.svg
+.. image:: quickstart_files/quickstart_13_0.svg
 
 
 
 
-.. image:: _static/quickstart_13_1.png
+.. image:: quickstart_files/quickstart_13_1.png
 
 
 The low p-value provides evidence against the null hypothesis of
@@ -285,8 +285,8 @@ and indicates that the model predictions are biased.
 +-----------------------------------------------------------------------+
 | Note                                                                  |
 +-----------------------------------------------------------------------+
-| For parametric corrections for multiple comparisons (e.g. false       |
-| discovery rate in case of testing many                                |
+| For parametric corrections for multiple comparisons (e.g. false       |
+| discover##### Partial confound testy rate in case of testing many     |
 | confounders), permutation based p-values must be adjusted if they are |
 | zero. A decent option could be in this case to use the upper binomial |
 | confidence limit (``p_ci[1]``), instead.                              |

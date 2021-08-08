@@ -1,4 +1,4 @@
-# About the package mlconfound
+# About mlconfound
 
 The lack of rigorous non-parametric statistical tests of confoudner-effects significantly hampers the development of
 robust, valid and generalizable predictive models in many fields of research.

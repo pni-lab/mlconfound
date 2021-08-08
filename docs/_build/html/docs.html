@@ -39,53 +39,56 @@
 <hr class="docutils" />
 <section id="module-mlconfound.stats">
 <span id="mlconfound-stats"></span><h2>mlconfound.stats<a class="headerlink" href="#module-mlconfound.stats" title="Permalink to this headline">¶</a></h2>
+</section>
+<hr class="docutils" />
+<section id="module-mlconfound.plot">
+<span id="mlconfound-plot"></span><h2>mlconfound.plot<a class="headerlink" href="#module-mlconfound.plot" title="Permalink to this headline">¶</a></h2>
 <dl class="py function">
-<dt class="sig sig-object py" id="mlconfound.stats.test_partially_confounded">
-<span class="sig-prename descclassname"><span class="pre">mlconfound.stats.</span></span><span class="sig-name descname"><span class="pre">test_partially_confounded</span></span><span class="sig-paren">(</span><em class="sig-param"><span class="n"><span class="pre">y</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">yhat</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">c</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">num_perms</span></span><span class="o"><span class="pre">=</span></span><span class="default_value"><span class="pre">1000</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">cat_y</span></span><span class="o"><span class="pre">=</span></span><span class="default_value"><span class="pre">False</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">cat_yhat</span></span><span class="o"><span class="pre">=</span></span><span class="default_value"><span class="pre">False</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">cat_c</span></span><span class="o"><span class="pre">=</span></span><span class="default_value"><span class="pre">False</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">mcmc_nstep</span></span><span class="o"><span class="pre">=</span></span><span class="default_value"><span class="pre">50</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">cond_dist_method</span></span><span class="o"><span class="pre">=</span></span><span class="default_value"><span class="pre">'GaussianReg'</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">return_null_dist</span></span><span class="o"><span class="pre">=</span></span><span class="default_value"><span class="pre">False</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">random_state</span></span><span class="o"><span class="pre">=</span></span><span class="default_value"><span class="pre">None</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">progress</span></span><span class="o"><span class="pre">=</span></span><span class="default_value"><span class="pre">True</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">n_jobs</span></span><span class="o"><span class="pre">=</span></span><span class="default_value"><span class="pre">-</span> <span class="pre">1</span></span></em><span class="sig-paren">)</span><a class="reference internal" href="_modules/mlconfound/stats.html#test_partially_confounded"><span class="viewcode-link"><span class="pre">[source]</span></span></a><a class="headerlink" href="#mlconfound.stats.test_partially_confounded" title="Permalink to this definition">¶</a></dt>
-<dd><p>Partial Confounder Test</p>
-<dl class="field-list">
+<dt class="sig sig-object py" id="mlconfound.plot.plot_graph">
+<span class="sig-prename descclassname"><span class="pre">mlconfound.plot.</span></span><span class="sig-name descname"><span class="pre">plot_graph</span></span><span class="sig-paren">(</span><em class="sig-param"><span class="n"><span class="pre">confound_test_results</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">y_name</span></span><span class="o"><span class="pre">=</span></span><span class="default_value"><span class="pre">'y'</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">yhat_name</span></span><span class="o"><span class="pre">=</span></span><span class="default_value"><span class="pre">'&lt;y&amp;#770;&gt;'</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">c_name</span></span><span class="o"><span class="pre">=</span></span><span class="default_value"><span class="pre">'c'</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">outfile_base</span></span><span class="o"><span class="pre">=</span></span><span class="default_value"><span class="pre">None</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">precision</span></span><span class="o"><span class="pre">=</span></span><span class="default_value"><span class="pre">3</span></span></em><span class="sig-paren">)</span><a class="reference internal" href="_modules/mlconfound/plot.html#plot_graph"><span class="viewcode-link"><span class="pre">[source]</span></span></a><a class="headerlink" href="#mlconfound.plot.plot_graph" title="Permalink to this definition">¶</a></dt>
+<dd><p>Plot confounder test results as a graph depicting the involved variables.</p>
+<dl class="field-list simple">
 <dt class="field-odd">Parameters</dt>
 <dd class="field-odd"><dl class="simple">
-<dt><strong>y</strong><span class="classifier">array_like</span></dt><dd><p>Target variable.</p>
+<dt><strong>confound_test_results</strong><span class="classifier">namedtuple</span></dt><dd><p>The object returned by <cite>test_partially_confounded</cite> or <cite>test_fully_confounded</cite>.</p>
 </dd>
-<dt><strong>yhat</strong><span class="classifier">array_like</span></dt><dd><p>Predictions.</p>
+<dt><strong>y_name: str</strong></dt><dd><p>Name of the target variable.</p>
 </dd>
-<dt><strong>c</strong><span class="classifier">array_like</span></dt><dd><p>Confounder variable.</p>
+<dt><strong>yhat_name: str</strong></dt><dd><p>Name for the model predictions.</p>
 </dd>
-<dt><strong>num_perms</strong><span class="classifier">int</span></dt><dd><p>Number of conditional permutations.</p>
+<dt><strong>c_name: str</strong></dt><dd><p>Name of the confounder variable.</p>
 </dd>
-<dt><strong>cat_y</strong><span class="classifier">bool</span></dt><dd><p>Flag for categorical target variable (classification).</p>
+<dt><strong>outfile_base: str</strong></dt><dd><p>Path for output files, without extension (None: figure not saved).</p>
 </dd>
-<dt><strong>cat_yhat</strong><span class="classifier">bool</span></dt><dd><p>Flag for categorical predictions (classification). Must be false, if class probabilities are used.</p>
-</dd>
-<dt><strong>cat_c</strong><span class="classifier">bool</span></dt><dd><p>Flag for categorical confounder variable (e.g center, sex or batch).</p>
-</dd>
-<dt><strong>mcmc_nstep</strong><span class="classifier">int</span></dt><dd><p>Number of steps for the Markov-chain Monte Carlo sampling.</p>
-</dd>
-<dt><strong>cond_dist_method {GaussianReg}</strong></dt><dd><p>Method to estimate the conditional distribution. Currently only Gaussian estimation is supported.</p>
-</dd>
-<dt><strong>return_null_dist</strong><span class="classifier">bool</span></dt><dd><p>Whether permuted null distribution should be returned (e.g. for plotting purposes).</p>
-</dd>
-<dt><strong>random_state</strong><span class="classifier">int or None</span></dt><dd><p>Random state for the conditional permutation.</p>
-</dd>
-<dt><strong>progress</strong><span class="classifier">bool</span></dt><dd><p>Whether to print out progress bar.</p>
-</dd>
-<dt><strong>n_jobs</strong><span class="classifier">int</span></dt><dd><p>Number of parallel jobs (-1: use all available processors).</p>
+<dt><strong>precision: int</strong></dt><dd><p>Precision for r squared values.</p>
 </dd>
 </dl>
 </dd>
 <dt class="field-even">Returns</dt>
-<dd class="field-even"><dl>
-<dt>ResultsPartiallyConfounded</dt><dd><p>Named tuple with the fields:
-- r2_y_c: coefficient-of-determination between y and c
-- r2_yhat_c: coefficient-of-determination between yhat and c
-- r2_y_yhat: coefficient-of-determination between y and yhat
-- p: p-value
-- p_ci: binomial 95% confidence interval for the p-value
-- null_distribution: numpy.ndarray containing the permuted null distribution or None depending on teh value of</p>
-<blockquote>
-<div><p>return_null_dist</p>
-</div></blockquote>
+<dd class="field-even"><dl class="simple">
+<dt>dot</dt><dd><p>The graphviz object to plot.</p>
+</dd>
+</dl>
+</dd>
+</dl>
+</dd></dl>
+
+<dl class="py function">
+<dt class="sig sig-object py" id="mlconfound.plot.plot_null_dist">
+<span class="sig-prename descclassname"><span class="pre">mlconfound.plot.</span></span><span class="sig-name descname"><span class="pre">plot_null_dist</span></span><span class="sig-paren">(</span><em class="sig-param"><span class="n"><span class="pre">confound_test_results</span></span></em>, <em class="sig-param"><span class="o"><span class="pre">**</span></span><span class="n"><span class="pre">kwargs</span></span></em><span class="sig-paren">)</span><a class="reference internal" href="_modules/mlconfound/plot.html#plot_null_dist"><span class="viewcode-link"><span class="pre">[source]</span></span></a><a class="headerlink" href="#mlconfound.plot.plot_null_dist" title="Permalink to this definition">¶</a></dt>
+<dd><p>Plot the histogram of the permutation-based null distribution of the confounder test.</p>
+<dl class="field-list simple">
+<dt class="field-odd">Parameters</dt>
+<dd class="field-odd"><dl class="simple">
+<dt><strong>confound_test_results: namedtuple</strong></dt><dd><p>The object returned by <cite>test_partially_confounded</cite> or <cite>test_fully_confounded</cite>.</p>
+</dd>
+<dt><strong>kwargs</strong><span class="classifier">dict</span></dt><dd><p>Additional named argumnets, passed to seaborn.histplot.</p>
+</dd>
+</dl>
+</dd>
+<dt class="field-even">Returns</dt>
+<dd class="field-even"><dl class="simple">
+<dt>matplotlib.axes.Axes</dt><dd><p>The matplotlib axes containing the plot.</p>
 </dd>
 </dl>
 </dd>
@@ -93,37 +96,12 @@
 <div class="admonition seealso">
 <p class="admonition-title">See also</p>
 <dl class="simple">
-<dt><code class="xref py py-obj docutils literal notranslate"><span class="pre">test_fully_confounded</span></code></dt><dd></dd>
+<dt><code class="xref py py-obj docutils literal notranslate"><span class="pre">plot</span></code></dt><dd></dd>
+<dt><code class="xref py py-obj docutils literal notranslate"><span class="pre">-------</span></code></dt><dd></dd>
 </dl>
-</div>
-<p class="rubric">Notes</p>
-<p>Performs partial confounder test, a statistical test described in <a href="#id1"><span class="problematic" id="id1">[1]_</span></a> and
-based on the conditional permutation test for independence <a href="#id2"><span class="problematic" id="id2">[2]_</span></a>.
-The null hypothesis of the test is that the model predictions are independent of the confounder,
-given the target variable, i.e. there is no-confounder bias.
-A low p-value therefore indicates significant confounder bias.</p>
-<p>The method has no assumptions about the distribution of yhat, but assumes normality for the conditional distribution
-(c | y). It is however, fairly robust to violating this assumptions, see <a href="#id3"><span class="problematic" id="id3">[1]_</span></a>.</p>
-<p class="rubric">References</p>
-<dl class="simple">
-<dt>[1] Spisak, Tamas “A conditional permutation-based approach to test confounder effect</dt><dd><p>and center-bias in machine learning models”, in prep.</p>
-</dd>
-</dl>
-<p>[2] Berrett, Thomas B., et al. “The conditional permutation test for independence
-while controlling for confounders.”
-Journal of the Royal Statistical Society: Series B (Statistical Methodology) 82.1 (2020): 175-197.</p>
-<p class="rubric">Examples</p>
-<p>See <cite>notebooks/quickstart.ipynb</cite> for more detailed examples.</p>
-<div class="doctest highlight-default notranslate"><div class="highlight"><pre><span></span><span class="gp">&gt;&gt;&gt; </span><span class="n">test_partially_confounded</span><span class="p">(</span><span class="n">y</span><span class="o">=</span><span class="p">[</span><span class="mi">1</span><span class="p">,</span><span class="mi">2</span><span class="p">,</span><span class="mi">3</span><span class="p">,</span><span class="mi">4</span><span class="p">,</span><span class="mi">5</span><span class="p">,</span><span class="mi">6</span><span class="p">],</span> <span class="n">yhat</span><span class="o">=</span><span class="p">[</span><span class="mf">1.5</span><span class="p">,</span><span class="mf">2.3</span><span class="p">,</span><span class="mf">2.9</span><span class="p">,</span><span class="mf">4.2</span><span class="p">,</span><span class="mi">5</span><span class="p">,</span><span class="mf">5.7</span><span class="p">],</span> <span class="n">c</span><span class="o">=</span><span class="p">[</span><span class="mi">3</span><span class="p">,</span><span class="mi">5</span><span class="p">,</span><span class="mi">4</span><span class="p">,</span><span class="mi">6</span><span class="p">,</span><span class="mi">1</span><span class="p">,</span><span class="mi">2</span><span class="p">],</span> <span class="n">random_state</span><span class="o">=</span><span class="mi">42</span><span class="p">)</span><span class="o">.</span><span class="n">p</span>
-<span class="go">0.693</span>
-</pre></div>
 </div>
 </dd></dl>
 
-</section>
-<hr class="docutils" />
-<section id="module-mlconfound.plot">
-<span id="mlconfound-plot"></span><h2>mlconfound.plot<a class="headerlink" href="#module-mlconfound.plot" title="Permalink to this headline">¶</a></h2>
 </section>
 <hr class="docutils" />
 <section id="module-mlconfound.simulate">
@@ -155,7 +133,7 @@ Journal of the Royal Statistical Society: Series B (Statistical Methodology) 82.
 </dl>
 </div>
 <p class="rubric">Notes</p>
-<p>The sinh-arcsinh transformation of Jones and Pewsey <a href="#id4"><span class="problematic" id="id1">[1]_</span></a> can be used to transfrom Normal distribution to non-normal.</p>
+<p>The sinh-arcsinh transformation of Jones and Pewsey <a href="#id1"><span class="problematic" id="id1">[1]_</span></a> can be used to transfrom Normal distribution to non-normal.</p>
 <p class="rubric">References</p>
 <p>[1] Jones, M. C. and Pewsey A. (2009). Sinh-arcsinh distributions. Biometrika 96: 761–780</p>
 <p class="rubric">Examples</p>

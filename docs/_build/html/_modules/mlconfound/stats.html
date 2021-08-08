@@ -208,7 +208,7 @@
                                        <span class="s1">&#39;null_distribution&#39;</span><span class="p">])</span>
 
 
-<span class="k">def</span> <span class="nf">cpt</span><span class="p">(</span><span class="n">x</span><span class="p">,</span> <span class="n">y</span><span class="p">,</span> <span class="n">z</span><span class="p">,</span> <span class="n">t_xy</span><span class="p">,</span> <span class="n">t_xz</span><span class="p">,</span> <span class="n">t_yz</span><span class="p">,</span> <span class="n">condlike_f</span><span class="p">,</span> <span class="n">num_perms</span><span class="o">=</span><span class="mi">1000</span><span class="p">,</span> <span class="n">mcmc_nstep</span><span class="o">=</span><span class="mi">50</span><span class="p">,</span> <span class="n">cond_dist_method</span><span class="o">=</span><span class="s1">&#39;GaussianReg&#39;</span><span class="p">,</span>
+<span class="k">def</span> <span class="nf">cpt</span><span class="p">(</span><span class="n">x</span><span class="p">,</span> <span class="n">y</span><span class="p">,</span> <span class="n">z</span><span class="p">,</span> <span class="n">t_xy</span><span class="p">,</span> <span class="n">t_xz</span><span class="p">,</span> <span class="n">t_yz</span><span class="p">,</span> <span class="n">condlike_f</span><span class="p">,</span> <span class="n">num_perms</span><span class="o">=</span><span class="mi">1000</span><span class="p">,</span> <span class="n">mcmc_steps</span><span class="o">=</span><span class="mi">50</span><span class="p">,</span> <span class="n">cond_dist_method</span><span class="o">=</span><span class="s1">&#39;GaussianReg&#39;</span><span class="p">,</span>
         <span class="n">return_null_dist</span><span class="o">=</span><span class="kc">False</span><span class="p">,</span> <span class="n">random_state</span><span class="o">=</span><span class="kc">None</span><span class="p">,</span> <span class="n">progress</span><span class="o">=</span><span class="kc">True</span><span class="p">,</span> <span class="n">n_jobs</span><span class="o">=-</span><span class="mi">1</span><span class="p">):</span>
     <span class="k">if</span> <span class="n">cond_dist_method</span> <span class="o">!=</span> <span class="s1">&#39;GaussianReg&#39;</span><span class="p">:</span>
         <span class="k">assert</span> <span class="ne">NotImplementedError</span><span class="p">(</span><span class="s2">&quot;Currently only regression-based Gaussian conditional distribution estimation &quot;</span>
@@ -224,11 +224,11 @@
     <span class="n">r2_x_y</span> <span class="o">=</span> <span class="n">t_xy</span><span class="p">(</span><span class="n">x</span><span class="p">,</span> <span class="n">y</span><span class="p">)</span>
 
     <span class="n">cond_log_lik_mat</span> <span class="o">=</span> <span class="n">condlike_f</span><span class="p">(</span><span class="n">x</span><span class="p">,</span> <span class="n">z</span><span class="p">)</span>
-    <span class="n">Pi_init</span> <span class="o">=</span> <span class="n">_generate_X_CPT_MC</span><span class="p">(</span><span class="n">mcmc_nstep</span><span class="p">,</span> <span class="n">cond_log_lik_mat</span><span class="p">,</span> <span class="n">np</span><span class="o">.</span><span class="n">arange</span><span class="p">(</span><span class="nb">len</span><span class="p">(</span><span class="n">x</span><span class="p">),</span> <span class="n">dtype</span><span class="o">=</span><span class="nb">int</span><span class="p">),</span> <span class="n">random_state</span><span class="o">=</span><span class="n">random_state</span><span class="p">)</span>
+    <span class="n">Pi_init</span> <span class="o">=</span> <span class="n">_generate_X_CPT_MC</span><span class="p">(</span><span class="n">mcmc_steps</span><span class="p">,</span> <span class="n">cond_log_lik_mat</span><span class="p">,</span> <span class="n">np</span><span class="o">.</span><span class="n">arange</span><span class="p">(</span><span class="nb">len</span><span class="p">(</span><span class="n">x</span><span class="p">),</span> <span class="n">dtype</span><span class="o">=</span><span class="nb">int</span><span class="p">),</span> <span class="n">random_state</span><span class="o">=</span><span class="n">random_state</span><span class="p">)</span>
 
     <span class="k">def</span> <span class="nf">workhorse</span><span class="p">(</span><span class="n">_random_state</span><span class="p">):</span>
         <span class="c1"># batched os job_batch for efficient parallelization</span>
-        <span class="n">Pi</span> <span class="o">=</span> <span class="n">_generate_X_CPT_MC</span><span class="p">(</span><span class="n">mcmc_nstep</span><span class="p">,</span> <span class="n">cond_log_lik_mat</span><span class="p">,</span> <span class="n">Pi_init</span><span class="p">,</span> <span class="n">random_state</span><span class="o">=</span><span class="n">_random_state</span><span class="p">)</span>
+        <span class="n">Pi</span> <span class="o">=</span> <span class="n">_generate_X_CPT_MC</span><span class="p">(</span><span class="n">mcmc_steps</span><span class="p">,</span> <span class="n">cond_log_lik_mat</span><span class="p">,</span> <span class="n">Pi_init</span><span class="p">,</span> <span class="n">random_state</span><span class="o">=</span><span class="n">_random_state</span><span class="p">)</span>
         <span class="k">return</span> <span class="n">t_xy</span><span class="p">(</span><span class="n">x</span><span class="p">[</span><span class="n">Pi</span><span class="p">],</span> <span class="n">y</span><span class="p">)</span>
 
     <span class="k">with</span> <span class="n">tqdm_joblib</span><span class="p">(</span><span class="n">tqdm</span><span class="p">(</span><span class="n">desc</span><span class="o">=</span><span class="s1">&#39;Permuting&#39;</span><span class="p">,</span> <span class="n">total</span><span class="o">=</span><span class="n">num_perms</span><span class="p">,</span> <span class="n">disable</span><span class="o">=</span><span class="ow">not</span> <span class="n">progress</span><span class="p">)):</span>
@@ -258,8 +258,7 @@
                                                                <span class="s1">&#39;null_distribution&#39;</span><span class="p">])</span>
 
 
-<span class="k">def</span> <span class="nf">test_fully_confounded</span><span class="p">(</span><span class="n">y</span><span class="p">,</span> <span class="n">yhat</span><span class="p">,</span> <span class="n">c</span><span class="p">,</span> <span class="n">num_perms</span><span class="o">=</span><span class="mi">1000</span><span class="p">,</span> <span class="n">cat_y</span><span class="o">=</span><span class="kc">False</span><span class="p">,</span> <span class="n">cat_yhat</span><span class="o">=</span><span class="kc">False</span><span class="p">,</span> <span class="n">cat_c</span><span class="o">=</span><span class="kc">False</span><span class="p">,</span> <span class="n">mcmc_nstep</span><span class="o">=</span><span class="mi">50</span><span class="p">,</span>
-                          <span class="n">cond_dist_method</span><span class="o">=</span><span class="s1">&#39;GaussianReg&#39;</span><span class="p">,</span>
+<span class="k">def</span> <span class="nf">test_fully_confounded</span><span class="p">(</span><span class="n">y</span><span class="p">,</span> <span class="n">yhat</span><span class="p">,</span> <span class="n">c</span><span class="p">,</span> <span class="n">num_perms</span><span class="o">=</span><span class="mi">1000</span><span class="p">,</span> <span class="n">cat_y</span><span class="o">=</span><span class="kc">False</span><span class="p">,</span> <span class="n">cat_yhat</span><span class="o">=</span><span class="kc">False</span><span class="p">,</span> <span class="n">cat_c</span><span class="o">=</span><span class="kc">False</span><span class="p">,</span> <span class="n">mcmc_steps</span><span class="o">=</span><span class="mi">50</span><span class="p">,</span>
                           <span class="n">return_null_dist</span><span class="o">=</span><span class="kc">False</span><span class="p">,</span> <span class="n">random_state</span><span class="o">=</span><span class="kc">None</span><span class="p">,</span> <span class="n">progress</span><span class="o">=</span><span class="kc">True</span><span class="p">,</span> <span class="n">n_jobs</span><span class="o">=-</span><span class="mi">1</span><span class="p">):</span>
 
     <span class="n">r2_y_yhat</span> <span class="o">=</span> <span class="n">_r2_factory</span><span class="p">(</span><span class="n">cat_y</span><span class="p">,</span> <span class="n">cat_yhat</span><span class="p">,</span> <span class="n">reverse_cat</span><span class="o">=</span><span class="kc">True</span><span class="p">)</span>
@@ -270,7 +269,7 @@
 
     <span class="k">return</span> <span class="n">ResultsFullyConfounded</span><span class="p">(</span>
         <span class="o">*</span><span class="n">cpt</span><span class="p">(</span><span class="n">x</span><span class="o">=</span><span class="n">y</span><span class="p">,</span> <span class="n">y</span><span class="o">=</span><span class="n">yhat</span><span class="p">,</span> <span class="n">z</span><span class="o">=</span><span class="n">c</span><span class="p">,</span> <span class="n">num_perms</span><span class="o">=</span><span class="n">num_perms</span><span class="p">,</span> <span class="n">t_xy</span><span class="o">=</span><span class="n">r2_y_yhat</span><span class="p">,</span> <span class="n">t_xz</span><span class="o">=</span><span class="n">r2_y_c</span><span class="p">,</span> <span class="n">t_yz</span><span class="o">=</span><span class="n">r2_yhat_c</span><span class="p">,</span> <span class="n">condlike_f</span><span class="o">=</span><span class="n">condlike_f</span><span class="p">,</span>
-             <span class="n">mcmc_nstep</span><span class="o">=</span><span class="n">mcmc_nstep</span><span class="p">,</span> <span class="n">return_null_dist</span><span class="o">=</span><span class="n">return_null_dist</span><span class="p">,</span> <span class="n">random_state</span><span class="o">=</span><span class="n">random_state</span><span class="p">,</span>
+             <span class="n">mcmc_steps</span><span class="o">=</span><span class="n">mcmc_steps</span><span class="p">,</span> <span class="n">return_null_dist</span><span class="o">=</span><span class="n">return_null_dist</span><span class="p">,</span> <span class="n">random_state</span><span class="o">=</span><span class="n">random_state</span><span class="p">,</span>
              <span class="n">progress</span><span class="o">=</span><span class="n">progress</span><span class="p">,</span> <span class="n">n_jobs</span><span class="o">=</span><span class="n">n_jobs</span><span class="p">))</span>
 
 
@@ -282,11 +281,11 @@
                                                                        <span class="s1">&#39;null_distribution&#39;</span><span class="p">])</span>
 
 
-<div class="viewcode-block" id="test_partially_confounded"><a class="viewcode-back" href="../../docs.html#mlconfound.stats.test_partially_confounded">[docs]</a><span class="k">def</span> <span class="nf">test_partially_confounded</span><span class="p">(</span><span class="n">y</span><span class="p">,</span> <span class="n">yhat</span><span class="p">,</span> <span class="n">c</span><span class="p">,</span> <span class="n">num_perms</span><span class="o">=</span><span class="mi">1000</span><span class="p">,</span> <span class="n">cat_y</span><span class="o">=</span><span class="kc">False</span><span class="p">,</span> <span class="n">cat_yhat</span><span class="o">=</span><span class="kc">False</span><span class="p">,</span> <span class="n">cat_c</span><span class="o">=</span><span class="kc">False</span><span class="p">,</span> <span class="n">mcmc_nstep</span><span class="o">=</span><span class="mi">50</span><span class="p">,</span>
-                              <span class="n">cond_dist_method</span><span class="o">=</span><span class="s1">&#39;GaussianReg&#39;</span><span class="p">,</span>
+<div class="viewcode-block" id="test_partially_confounded"><a class="viewcode-back" href="../../docs.html#mlconfound.stats.test_partially_confounded">[docs]</a><span class="k">def</span> <span class="nf">test_partially_confounded</span><span class="p">(</span><span class="n">y</span><span class="p">,</span> <span class="n">yhat</span><span class="p">,</span> <span class="n">c</span><span class="p">,</span> <span class="n">num_perms</span><span class="o">=</span><span class="mi">1000</span><span class="p">,</span> <span class="n">cat_y</span><span class="o">=</span><span class="kc">False</span><span class="p">,</span> <span class="n">cat_yhat</span><span class="o">=</span><span class="kc">False</span><span class="p">,</span> <span class="n">cat_c</span><span class="o">=</span><span class="kc">False</span><span class="p">,</span> <span class="n">mcmc_steps</span><span class="o">=</span><span class="mi">50</span><span class="p">,</span>
                               <span class="n">return_null_dist</span><span class="o">=</span><span class="kc">False</span><span class="p">,</span> <span class="n">random_state</span><span class="o">=</span><span class="kc">None</span><span class="p">,</span> <span class="n">progress</span><span class="o">=</span><span class="kc">True</span><span class="p">,</span> <span class="n">n_jobs</span><span class="o">=-</span><span class="mi">1</span><span class="p">):</span>
     <span class="sd">&quot;&quot;&quot;</span>
-<span class="sd">    Partial Confounder Test</span>
+<span class="sd">    The Partial Confounder Test, to test confounder bias in machine learning models,</span>
+<span class="sd">    based on the target variable, the confounder and the model predictions.</span>
 
 <span class="sd">    Notes</span>
 <span class="sd">    -----</span>
@@ -316,10 +315,8 @@
 <span class="sd">        Flag for categorical predictions (classification). Must be false, if class probabilities are used.</span>
 <span class="sd">    cat_c : bool</span>
 <span class="sd">        Flag for categorical confounder variable (e.g center, sex or batch).</span>
-<span class="sd">    mcmc_nstep : int</span>
+<span class="sd">    mcmc_steps : int</span>
 <span class="sd">        Number of steps for the Markov-chain Monte Carlo sampling.</span>
-<span class="sd">    cond_dist_method {GaussianReg}</span>
-<span class="sd">        Method to estimate the conditional distribution. Currently only Gaussian estimation is supported.</span>
 <span class="sd">    return_null_dist : bool</span>
 <span class="sd">        Whether permuted null distribution should be returned (e.g. for plotting purposes).</span>
 <span class="sd">    random_state : int or None</span>
@@ -329,17 +326,24 @@
 <span class="sd">    n_jobs : int</span>
 <span class="sd">        Number of parallel jobs (-1: use all available processors).</span>
 
+
 <span class="sd">    Returns</span>
 <span class="sd">    -------</span>
 <span class="sd">    ResultsPartiallyConfounded</span>
 <span class="sd">        Named tuple with the fields:</span>
-<span class="sd">        - r2_y_c: coefficient-of-determination between y and c</span>
-<span class="sd">        - r2_yhat_c: coefficient-of-determination between yhat and c</span>
-<span class="sd">        - r2_y_yhat: coefficient-of-determination between y and yhat</span>
-<span class="sd">        - p: p-value</span>
-<span class="sd">        - p_ci: binomial 95% confidence interval for the p-value</span>
-<span class="sd">        - null_distribution: numpy.ndarray containing the permuted null distribution or None depending on teh value of</span>
-<span class="sd">          return_null_dist</span>
+
+<span class="sd">        - &quot;r2_y_c&quot;: coefficient-of-determination between y and c,</span>
+
+<span class="sd">        - &quot;r2_yhat_c&quot;: coefficient-of-determination between yhat and c,</span>
+
+<span class="sd">        - &quot;r2_y_yhat&quot;: coefficient-of-determination between y and yhat,</span>
+<span class="sd">        -----------</span>
+<span class="sd">        - &quot;p&quot;: p-value,</span>
+
+<span class="sd">        - &quot;p_ci&quot;: binomial 95% confidence interval for the p-value,</span>
+
+<span class="sd">        - &quot;null_distribution&quot;: numpy.ndarray containing the permuted null distribution or None depending on teh value of</span>
+<span class="sd">                return_null_dist.</span>
 
 <span class="sd">    Examples</span>
 <span class="sd">    --------</span>
@@ -371,7 +375,7 @@
 
     <span class="k">return</span> <span class="n">ResultsPartiallyConfounded</span><span class="p">(</span>
         <span class="o">*</span><span class="n">cpt</span><span class="p">(</span><span class="n">x</span><span class="o">=</span><span class="n">c</span><span class="p">,</span> <span class="n">y</span><span class="o">=</span><span class="n">yhat</span><span class="p">,</span> <span class="n">z</span><span class="o">=</span><span class="n">y</span><span class="p">,</span> <span class="n">num_perms</span><span class="o">=</span><span class="n">num_perms</span><span class="p">,</span> <span class="n">t_xy</span><span class="o">=</span><span class="n">r2_c_yhat</span><span class="p">,</span> <span class="n">t_xz</span><span class="o">=</span><span class="n">r2_c_y</span><span class="p">,</span> <span class="n">t_yz</span><span class="o">=</span><span class="n">r2_yhat_y</span><span class="p">,</span> <span class="n">condlike_f</span><span class="o">=</span><span class="n">condlike_f</span><span class="p">,</span>
-             <span class="n">mcmc_nstep</span><span class="o">=</span><span class="n">mcmc_nstep</span><span class="p">,</span> <span class="n">return_null_dist</span><span class="o">=</span><span class="n">return_null_dist</span><span class="p">,</span> <span class="n">random_state</span><span class="o">=</span><span class="n">random_state</span><span class="p">,</span>
+             <span class="n">mcmc_steps</span><span class="o">=</span><span class="n">mcmc_steps</span><span class="p">,</span> <span class="n">return_null_dist</span><span class="o">=</span><span class="n">return_null_dist</span><span class="p">,</span> <span class="n">random_state</span><span class="o">=</span><span class="n">random_state</span><span class="p">,</span>
              <span class="n">progress</span><span class="o">=</span><span class="n">progress</span><span class="p">,</span> <span class="n">n_jobs</span><span class="o">=</span><span class="n">n_jobs</span><span class="p">))</span></div>
 </pre></div>
 
@@ -395,6 +399,7 @@
 <ul>
 <li class="toctree-l1"><a class="reference internal" href="../../about.html">About the package mlconfound</a></li>
 <li class="toctree-l1"><a class="reference internal" href="../../install.html">Install</a></li>
+<li class="toctree-l1"><a class="reference internal" href="../../quickstart.html">Quickstart</a></li>
 <li class="toctree-l1"><a class="reference internal" href="../../docs.html">Documentation</a></li>
 </ul>
 

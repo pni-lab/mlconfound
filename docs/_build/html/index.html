@@ -17,7 +17,7 @@
     <link rel="author" title="About these documents" href="about.html" />
     <link rel="index" title="Index" href="genindex.html" />
     <link rel="search" title="Search" href="search.html" />
-    <link rel="next" title="About the package mlconfound" href="about.html" />
+    <link rel="next" title="About mlconfound" href="about.html" />
    
   <link rel="stylesheet" href="_static/custom.css" type="text/css" />
   
@@ -38,17 +38,33 @@
 <h1>Welcome to the docs of ‘mlconfound’!<a class="headerlink" href="#welcome-to-the-docs-of-mlconfound" title="Permalink to this headline">¶</a></h1>
 <p>Tools for analyzing and quantifying effects of counfounder variables on machine learning model predictions.</p>
 <a class="reference internal image-reference" href="_images/biased-model-example.png"><img alt="biased model example" src="_images/biased-model-example.png" style="width: 500px;" /></a>
+<section id="install">
+<h2>Install<a class="headerlink" href="#install" title="Permalink to this headline">¶</a></h2>
+<div class="highlight-bash notranslate"><div class="highlight"><pre><span></span>pip install mlconfound
+</pre></div>
+</div>
+</section>
+<section id="example">
+<h2>Example<a class="headerlink" href="#example" title="Permalink to this headline">¶</a></h2>
+<div class="highlight-python notranslate"><div class="highlight"><pre><span></span><span class="kn">from</span> <span class="nn">mlconfound.stats</span> <span class="kn">import</span> <span class="n">partial_confound_test</span>
+
+<span class="n">partial_confound_test</span><span class="p">(</span><span class="n">y</span><span class="p">,</span> <span class="n">yhat</span><span class="p">,</span> <span class="n">c</span><span class="p">)</span>
+</pre></div>
+</div>
+</section>
+<section id="more">
+<h2>More<a class="headerlink" href="#more" title="Permalink to this headline">¶</a></h2>
 <div class="toctree-wrapper compound">
-<p class="caption" role="heading"><span class="caption-text">Contents:</span></p>
 <ul>
-<li class="toctree-l1"><a class="reference internal" href="about.html">About the package mlconfound</a></li>
+<li class="toctree-l1"><a class="reference internal" href="about.html">About mlconfound</a></li>
 <li class="toctree-l1"><a class="reference internal" href="install.html">Install</a></li>
 <li class="toctree-l1"><a class="reference internal" href="quickstart.html">Quickstart</a></li>
 <li class="toctree-l1"><a class="reference internal" href="docs.html">Documentation</a></li>
 </ul>
 </div>
-<section id="indices-and-tables">
-<h2>Indices and tables<a class="headerlink" href="#indices-and-tables" title="Permalink to this headline">¶</a></h2>
+</section>
+<section id="documentation-index">
+<h2>Documentation index<a class="headerlink" href="#documentation-index" title="Permalink to this headline">¶</a></h2>
 <ul class="simple">
 <li><p><a class="reference internal" href="genindex.html"><span class="std std-ref">Index</span></a></p></li>
 <li><p><a class="reference internal" href="py-modindex.html"><span class="std std-ref">Module Index</span></a></p></li>
@@ -74,9 +90,8 @@
 
 
 <h3>Navigation</h3>
-<p class="caption" role="heading"><span class="caption-text">Contents:</span></p>
 <ul>
-<li class="toctree-l1"><a class="reference internal" href="about.html">About the package mlconfound</a></li>
+<li class="toctree-l1"><a class="reference internal" href="about.html">About mlconfound</a></li>
 <li class="toctree-l1"><a class="reference internal" href="install.html">Install</a></li>
 <li class="toctree-l1"><a class="reference internal" href="quickstart.html">Quickstart</a></li>
 <li class="toctree-l1"><a class="reference internal" href="docs.html">Documentation</a></li>
@@ -86,7 +101,7 @@
 <h3>Related Topics</h3>
 <ul>
   <li><a href="#">Documentation overview</a><ul>
-      <li>Next: <a href="about.html" title="next chapter">About the package mlconfound</a></li>
+      <li>Next: <a href="about.html" title="next chapter">About mlconfound</a></li>
   </ul></li>
 </ul>
 </div>

@@ -11,17 +11,32 @@ Tools for analyzing and quantifying effects of counfounder variables on machine 
   :width: 500
   :alt: biased model example
 
+Install
+--------
+.. code-block:: bash
+
+   pip install mlconfound
+
+Example
+--------
+.. code-block:: python
+
+   from mlconfound.stats import partial_confound_test
+
+   partial_confound_test(y, yhat, c)
+
+
+More
+--------
+
 .. toctree::
    about.md
    install.md
    quickstart.md
    docs.md
    :maxdepth: 1
-   :caption: Contents:
 
-
-
-Indices and tables
+Documentation index
 ------------------
 
 * :ref:`genindex`
