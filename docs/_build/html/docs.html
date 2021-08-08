@@ -115,7 +115,7 @@ Journal of the Royal Statistical Society: Series B (Statistical Methodology) 82.
 <p class="rubric">Examples</p>
 <p>See <cite>notebooks/quickstart.ipynb</cite> for more detailed examples.</p>
 <div class="doctest highlight-default notranslate"><div class="highlight"><pre><span></span><span class="gp">&gt;&gt;&gt; </span><span class="n">test_partially_confounded</span><span class="p">(</span><span class="n">y</span><span class="o">=</span><span class="p">[</span><span class="mi">1</span><span class="p">,</span><span class="mi">2</span><span class="p">,</span><span class="mi">3</span><span class="p">,</span><span class="mi">4</span><span class="p">,</span><span class="mi">5</span><span class="p">,</span><span class="mi">6</span><span class="p">],</span> <span class="n">yhat</span><span class="o">=</span><span class="p">[</span><span class="mf">1.5</span><span class="p">,</span><span class="mf">2.3</span><span class="p">,</span><span class="mf">2.9</span><span class="p">,</span><span class="mf">4.2</span><span class="p">,</span><span class="mi">5</span><span class="p">,</span><span class="mf">5.7</span><span class="p">],</span> <span class="n">c</span><span class="o">=</span><span class="p">[</span><span class="mi">3</span><span class="p">,</span><span class="mi">5</span><span class="p">,</span><span class="mi">4</span><span class="p">,</span><span class="mi">6</span><span class="p">,</span><span class="mi">1</span><span class="p">,</span><span class="mi">2</span><span class="p">],</span> <span class="n">random_state</span><span class="o">=</span><span class="mi">42</span><span class="p">)</span><span class="o">.</span><span class="n">p</span>
-<span class="go">0.692</span>
+<span class="go">0.693</span>
 </pre></div>
 </div>
 </dd></dl>
@@ -160,9 +160,9 @@ Journal of the Royal Statistical Society: Series B (Statistical Methodology) 82.
 <p>[1] Jones, M. C. and Pewsey A. (2009). Sinh-arcsinh distributions. Biometrika 96: 761–780</p>
 <p class="rubric">Examples</p>
 <p>See <cite>validation/simulation.py</cite> for an application example.</p>
-<div class="doctest highlight-default notranslate"><div class="highlight"><pre><span></span><span class="gp">&gt;&gt;&gt; </span><span class="n">sinh_arcsinh</span><span class="p">([</span><span class="o">-</span><span class="mi">1</span><span class="p">,</span> <span class="o">-</span><span class="mf">0.5</span><span class="p">,</span> <span class="o">-</span><span class="mf">0.1</span><span class="p">,</span> <span class="mf">0.1</span><span class="p">,</span> <span class="mf">0.5</span><span class="p">,</span> <span class="mi">1</span><span class="p">],</span> <span class="n">delta</span><span class="o">=</span><span class="mi">2</span><span class="p">,</span> <span class="n">epsilon</span><span class="o">=</span><span class="mi">1</span><span class="p">)</span>
-<span class="go">array([-7.8900947 , -3.48801839, -1.50886059, -0.88854985, -0.03758519,</span>
-<span class="go">    0.83888754])</span>
+<div class="doctest highlight-default notranslate"><div class="highlight"><pre><span></span><span class="gp">&gt;&gt;&gt; </span><span class="n">result</span> <span class="o">=</span> <span class="n">sinh_arcsinh</span><span class="p">([</span><span class="o">-</span><span class="mi">1</span><span class="p">,</span> <span class="o">-</span><span class="mf">0.5</span><span class="p">,</span> <span class="o">-</span><span class="mf">0.1</span><span class="p">,</span> <span class="mf">0.1</span><span class="p">,</span> <span class="mf">0.5</span><span class="p">,</span> <span class="mi">1</span><span class="p">],</span> <span class="n">delta</span><span class="o">=</span><span class="mi">2</span><span class="p">,</span> <span class="n">epsilon</span><span class="o">=</span><span class="mi">1</span><span class="p">)</span>
+<span class="gp">&gt;&gt;&gt; </span><span class="nb">print</span><span class="p">(</span><span class="n">result</span><span class="p">)</span>
+<span class="go">[-7.8900947  -3.48801839 -1.50886059 -0.88854985 -0.03758519  0.83888754]</span>
 </pre></div>
 </div>
 </dd></dl>
@@ -193,12 +193,7 @@ Journal of the Royal Statistical Society: Series B (Statistical Methodology) 82.
 <li class="toctree-l1"><a class="reference internal" href="about.html">About the package mlconfound</a></li>
 <li class="toctree-l1"><a class="reference internal" href="install.html">Install</a></li>
 <li class="toctree-l1"><a class="reference internal" href="quickstart.html">Quickstart</a></li>
-<li class="toctree-l1 current"><a class="current reference internal" href="#">Documentation</a><ul>
-<li class="toctree-l2"><a class="reference internal" href="#module-mlconfound.stats">mlconfound.stats</a></li>
-<li class="toctree-l2"><a class="reference internal" href="#module-mlconfound.plot">mlconfound.plot</a></li>
-<li class="toctree-l2"><a class="reference internal" href="#module-mlconfound.simulate">mlconfound.simulate</a></li>
-</ul>
-</li>
+<li class="toctree-l1 current"><a class="current reference internal" href="#">Documentation</a></li>
 </ul>
 
 <div class="relations">

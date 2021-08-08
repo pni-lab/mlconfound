@@ -9,10 +9,10 @@ Welcome to mlconfound's documentation!
 .. toctree::
    about.md
    install.md
+   quickstart.md
    docs.md
    :maxdepth: 1
    :caption: Contents:
-
 
 
 Indices and tables
