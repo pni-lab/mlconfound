@@ -461,6 +461,12 @@ Journal of the Royal Statistical Society: Series B (Statistical Methodology) 82.
 </dl>
 </dd>
 </dl>
+<div class="admonition seealso">
+<p class="admonition-title">See also</p>
+<dl class="simple">
+<dt><a class="reference internal" href="#mlconfound.plot.plot_null_dist" title="mlconfound.plot.plot_null_dist"><code class="xref py py-obj docutils literal notranslate"><span class="pre">plot_null_dist</span></code></a></dt><dd></dd>
+</dl>
+</div>
 </dd></dl>
 
 <dl class="py function">
@@ -486,8 +492,7 @@ Journal of the Royal Statistical Society: Series B (Statistical Methodology) 82.
 <div class="admonition seealso">
 <p class="admonition-title">See also</p>
 <dl class="simple">
-<dt><code class="xref py py-obj docutils literal notranslate"><span class="pre">plot</span></code></dt><dd></dd>
-<dt><code class="xref py py-obj docutils literal notranslate"><span class="pre">-------</span></code></dt><dd></dd>
+<dt><a class="reference internal" href="#mlconfound.plot.plot_graph" title="mlconfound.plot.plot_graph"><code class="xref py py-obj docutils literal notranslate"><span class="pre">plot_graph</span></code></a></dt><dd></dd>
 </dl>
 </div>
 </dd></dl>
@@ -496,6 +501,50 @@ Journal of the Royal Statistical Society: Series B (Statistical Methodology) 82.
 <hr class="docutils" />
 <section id="module-mlconfound.simulate">
 <span id="mlconfound-simulate"></span><h2>mlconfound.simulate<a class="headerlink" href="#module-mlconfound.simulate" title="Permalink to this headline">¶</a></h2>
+<dl class="py function">
+<dt class="sig sig-object py" id="mlconfound.simulate.simulate_y_c_yhat">
+<span class="sig-prename descclassname"><span class="pre">mlconfound.simulate.</span></span><span class="sig-name descname"><span class="pre">simulate_y_c_yhat</span></span><span class="sig-paren">(</span><em class="sig-param"><span class="n"><span class="pre">cov_y_c</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">y_ratio_yhat</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">c_ratio_yhat</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">n</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">random_state</span></span><span class="o"><span class="pre">=</span></span><span class="default_value"><span class="pre">None</span></span></em><span class="sig-paren">)</span><a class="reference internal" href="_modules/mlconfound/simulate.html#simulate_y_c_yhat"><span class="viewcode-link"><span class="pre">[source]</span></span></a><a class="headerlink" href="#mlconfound.simulate.simulate_y_c_yhat" title="Permalink to this definition">¶</a></dt>
+<dd><p>Simulate normally distributed target (y), confounder (c) and predictions (yhat).</p>
+<dl class="field-list simple">
+<dt class="field-odd">Parameters</dt>
+<dd class="field-odd"><dl class="simple">
+<dt><strong>cov_y_c: float</strong></dt><dd><p>The covariance of y and c.</p>
+</dd>
+<dt><strong>y_ratio_yhat: float</strong></dt><dd><p>The weight of y in yhat.</p>
+</dd>
+<dt><strong>c_ratio_yhat: float</strong></dt><dd><p>The weight of c in yhat. Set it to zero for H0.</p>
+</dd>
+<dt><strong>n: int</strong></dt><dd><p>Number of observations.</p>
+</dd>
+<dt><strong>random_state: int</strong></dt><dd><p>Numpy random state.</p>
+</dd>
+</dl>
+</dd>
+<dt class="field-even">Returns</dt>
+<dd class="field-even"><dl class="simple">
+<dt>tuple</dt><dd><ul class="simple">
+<li><p>y: the simulated target variable</p></li>
+<li><p>c: the simulated confounder variable</p></li>
+<li><p>yhat: the simulated predictions</p></li>
+</ul>
+</dd>
+</dl>
+</dd>
+</dl>
+<div class="admonition seealso">
+<p class="admonition-title">See also</p>
+<dl class="simple">
+<dt><a class="reference internal" href="#mlconfound.simulate.sinh_arcsinh" title="mlconfound.simulate.sinh_arcsinh"><code class="xref py py-obj docutils literal notranslate"><span class="pre">sinh_arcsinh</span></code></a></dt><dd></dd>
+</dl>
+</div>
+<p class="rubric">Examples</p>
+<div class="doctest highlight-default notranslate"><div class="highlight"><pre><span></span><span class="gp">&gt;&gt;&gt; </span><span class="n">y</span><span class="p">,</span> <span class="n">c</span><span class="p">,</span> <span class="n">yhat</span> <span class="o">=</span> <span class="n">simulate_y_c_yhat</span><span class="p">(</span><span class="mf">0.3</span><span class="p">,</span> <span class="mf">0.2</span><span class="p">,</span> <span class="mf">0.2</span><span class="p">,</span> <span class="n">n</span><span class="o">=</span><span class="mi">3</span><span class="p">,</span> <span class="n">random_state</span><span class="o">=</span><span class="mi">42</span><span class="p">)</span>
+<span class="gp">&gt;&gt;&gt; </span><span class="nb">print</span><span class="p">(</span><span class="n">y</span><span class="p">,</span> <span class="n">c</span><span class="p">,</span> <span class="n">yhat</span><span class="p">)</span>
+<span class="go">[ 0.36959213 -1.16147869  2.34335464] [-0.86093366 -0.04858751  0.80259507] [-0.02156406 -0.43175879  0.61910925]</span>
+</pre></div>
+</div>
+</dd></dl>
+
 <dl class="py function">
 <dt class="sig sig-object py" id="mlconfound.simulate.sinh_arcsinh">
 <span class="sig-prename descclassname"><span class="pre">mlconfound.simulate.</span></span><span class="sig-name descname"><span class="pre">sinh_arcsinh</span></span><span class="sig-paren">(</span><em class="sig-param"><span class="n"><span class="pre">x</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">delta</span></span><span class="o"><span class="pre">=</span></span><span class="default_value"><span class="pre">1</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">epsilon</span></span><span class="o"><span class="pre">=</span></span><span class="default_value"><span class="pre">0</span></span></em><span class="sig-paren">)</span><a class="reference internal" href="_modules/mlconfound/simulate.html#sinh_arcsinh"><span class="viewcode-link"><span class="pre">[source]</span></span></a><a class="headerlink" href="#mlconfound.simulate.sinh_arcsinh" title="Permalink to this definition">¶</a></dt>
@@ -519,7 +568,7 @@ Journal of the Royal Statistical Society: Series B (Statistical Methodology) 82.
 <div class="admonition seealso">
 <p class="admonition-title">See also</p>
 <dl class="simple">
-<dt><code class="xref py py-obj docutils literal notranslate"><span class="pre">simulate_y_c_yhat</span></code></dt><dd></dd>
+<dt><a class="reference internal" href="#mlconfound.simulate.simulate_y_c_yhat" title="mlconfound.simulate.simulate_y_c_yhat"><code class="xref py py-obj docutils literal notranslate"><span class="pre">simulate_y_c_yhat</span></code></a></dt><dd></dd>
 </dl>
 </div>
 <p class="rubric">Notes</p>
@@ -557,6 +606,7 @@ Journal of the Royal Statistical Society: Series B (Statistical Methodology) 82.
 
 <h3>Navigation</h3>
 <ul class="current">
+<li class="toctree-l1"><a class="reference external" href="`CNN &lt;http://cnn.com&gt;`_">`CNN &lt;http://cnn.com&gt;`_</a></li>
 <li class="toctree-l1"><a class="reference internal" href="about.html">About mlconfound</a></li>
 <li class="toctree-l1"><a class="reference internal" href="install.html">Install</a></li>
 <li class="toctree-l1"><a class="reference internal" href="quickstart.html">Quickstart</a></li>

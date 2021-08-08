@@ -28,6 +28,10 @@ Example
   :width: 500
   :alt: biased model example
 
+Source
+-------
+`https://github.com/pni-lab/mlconfound <https://github.com/pni-lab/mlconfound>`_
+
 
 More
 --------

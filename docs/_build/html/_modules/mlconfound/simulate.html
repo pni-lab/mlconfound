@@ -76,16 +76,51 @@
     <span class="k">return</span> <span class="n">np</span><span class="o">.</span><span class="n">sinh</span><span class="p">(</span><span class="n">delta</span> <span class="o">*</span> <span class="n">np</span><span class="o">.</span><span class="n">arcsinh</span><span class="p">(</span><span class="n">x</span><span class="p">)</span> <span class="o">-</span> <span class="n">epsilon</span><span class="p">)</span></div>
 
 
-<span class="k">def</span> <span class="nf">simulate_y_c_yhat</span><span class="p">(</span><span class="n">cov_y_c</span><span class="p">,</span>
+<div class="viewcode-block" id="simulate_y_c_yhat"><a class="viewcode-back" href="../../docs.html#mlconfound.simulate.simulate_y_c_yhat">[docs]</a><span class="k">def</span> <span class="nf">simulate_y_c_yhat</span><span class="p">(</span><span class="n">cov_y_c</span><span class="p">,</span>
                       <span class="n">y_ratio_yhat</span><span class="p">,</span> <span class="n">c_ratio_yhat</span><span class="p">,</span>
                       <span class="n">n</span><span class="p">,</span> <span class="n">random_state</span><span class="o">=</span><span class="kc">None</span><span class="p">):</span>
+    <span class="sd">&quot;&quot;&quot;</span>
+<span class="sd">    Simulate normally distributed target (y), confounder (c) and predictions (yhat).</span>
+
+<span class="sd">    Parameters</span>
+<span class="sd">    ----------</span>
+<span class="sd">    cov_y_c: float</span>
+<span class="sd">        The covariance of y and c.</span>
+<span class="sd">    y_ratio_yhat: float</span>
+<span class="sd">        The weight of y in yhat.</span>
+<span class="sd">    c_ratio_yhat: float</span>
+<span class="sd">        The weight of c in yhat. Set it to zero for H0.</span>
+<span class="sd">    n: int</span>
+<span class="sd">        Number of observations.</span>
+<span class="sd">    random_state: int</span>
+<span class="sd">        Numpy random state.</span>
+
+<span class="sd">    Returns</span>
+<span class="sd">    -------</span>
+<span class="sd">    tuple</span>
+
+<span class="sd">        - y: the simulated target variable</span>
+<span class="sd">        - c: the simulated confounder variable</span>
+<span class="sd">        - yhat: the simulated predictions</span>
+
+<span class="sd">    See Also</span>
+<span class="sd">    --------</span>
+<span class="sd">    sinh_arcsinh</span>
+
+<span class="sd">    Examples</span>
+<span class="sd">    --------</span>
+<span class="sd">    &gt;&gt;&gt; y, c, yhat = simulate_y_c_yhat(0.3, 0.2, 0.2, n=3, random_state=42)</span>
+<span class="sd">    &gt;&gt;&gt; print(y, c, yhat)</span>
+<span class="sd">    [ 0.36959213 -1.16147869  2.34335464] [-0.86093366 -0.04858751  0.80259507] [-0.02156406 -0.43175879  0.61910925]</span>
+
+<span class="sd">    &quot;&quot;&quot;</span>
     <span class="n">rng</span> <span class="o">=</span> <span class="n">np</span><span class="o">.</span><span class="n">random</span><span class="o">.</span><span class="n">default_rng</span><span class="p">(</span><span class="n">random_state</span><span class="p">)</span>
 
     <span class="n">y</span><span class="p">,</span> <span class="n">c</span> <span class="o">=</span> <span class="n">rng</span><span class="o">.</span><span class="n">multivariate_normal</span><span class="p">([</span><span class="mi">0</span><span class="p">,</span> <span class="mi">0</span><span class="p">],</span> <span class="p">[[</span><span class="mi">1</span><span class="p">,</span> <span class="n">cov_y_c</span><span class="p">],</span> <span class="p">[</span><span class="n">cov_y_c</span><span class="p">,</span> <span class="mi">1</span><span class="p">]],</span> <span class="n">n</span><span class="p">)</span><span class="o">.</span><span class="n">T</span>
 
     <span class="n">yhat</span> <span class="o">=</span> <span class="n">y_ratio_yhat</span> <span class="o">*</span> <span class="n">y</span> <span class="o">+</span> <span class="n">c_ratio_yhat</span> <span class="o">*</span> <span class="n">c</span> <span class="o">+</span> <span class="p">(</span><span class="mi">1</span> <span class="o">-</span> <span class="n">y_ratio_yhat</span> <span class="o">-</span> <span class="n">c_ratio_yhat</span><span class="p">)</span> <span class="o">*</span> <span class="n">rng</span><span class="o">.</span><span class="n">normal</span><span class="p">(</span><span class="mi">0</span><span class="p">,</span> <span class="mi">1</span><span class="p">,</span> <span class="n">n</span><span class="p">)</span>
 
-    <span class="k">return</span> <span class="n">y</span><span class="p">,</span> <span class="n">c</span><span class="p">,</span> <span class="n">yhat</span>
+    <span class="k">return</span> <span class="n">y</span><span class="p">,</span> <span class="n">c</span><span class="p">,</span> <span class="n">yhat</span></div>
 
 
 <span class="k">def</span> <span class="nf">_create_covariance_matrix</span><span class="p">(</span><span class="n">rho</span><span class="p">,</span> <span class="n">p</span><span class="p">):</span>
@@ -131,9 +166,9 @@
 
 
 <h3>Navigation</h3>
-<p class="caption" role="heading"><span class="caption-text">Contents:</span></p>
 <ul>
-<li class="toctree-l1"><a class="reference internal" href="../../about.html">About the package mlconfound</a></li>
+<li class="toctree-l1"><a class="reference external" href="`CNN &lt;http://cnn.com&gt;`_">`CNN &lt;http://cnn.com&gt;`_</a></li>
+<li class="toctree-l1"><a class="reference internal" href="../../about.html">About mlconfound</a></li>
 <li class="toctree-l1"><a class="reference internal" href="../../install.html">Install</a></li>
 <li class="toctree-l1"><a class="reference internal" href="../../quickstart.html">Quickstart</a></li>
 <li class="toctree-l1"><a class="reference internal" href="../../docs.html">Documentation</a></li>
