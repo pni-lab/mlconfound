@@ -74,24 +74,13 @@ number of permutations for more accurate p-value estimates.
 
 The random seed is set for reproducible results. The flag
 ``return_null_dist`` is set so that the full permutation-based null
-distribution is returned, e.g. for plotting purposes.
+distribution is returned, e.g. for plotting purposes.
 
-The pandas dataframe is solely created for “pretty-printing” the
-results.
 
 .. code:: ipython3
 
     ret=partial_confound_test(H0_y, H0_yhat, H0_c, return_null_dist=True,
                       random_state=42)
-    #pretty print results
-    pd.DataFrame({
-        'p' : [ret.p],
-        'ci lower' : [ret.p_ci[0]],
-        'ci upper' : [ret.p_ci[1]],
-        'R2(y,c)' : [ret.r2_y_c],
-        'R2(y^,c)' : [ret.r2_yhat_c],
-        'R2(y,y^)' : [ret.r2_y_yhat],
-    })
 
 
 
@@ -163,7 +152,7 @@ a graphical representation of the results.
 
 
 
-.. image:: quickstart_files/quickstart_7_1.png
+.. image:: _static/quickstart_7_1.png
 
 
 The histogram shows the :math:`R^2` values between the predictions and
@@ -178,7 +167,7 @@ have no evidence against the null (:math:`p=0.8`).
 
 
 
-.. image:: quickstart_files/quickstart_9_0.svg
+.. image:: _static/quickstart_9_0.svg
 
 
 
@@ -196,18 +185,9 @@ confounded model.
     H1_y, H1_c, H1_yhat = simulate_y_c_yhat(cov_y_c=0.3,
                           y_ratio_yhat=0.4, c_ratio_yhat=0.1,
                           n=500, random_state=42)
+
     ret=partial_confound_test(H1_y, H1_yhat, H1_c, num_perms=1000, return_null_dist=True,
                       random_state=42, n_jobs=-1)
-    
-    #pretty print results
-    pd.DataFrame({
-        'p' : [ret.p],
-        'ci lower' : [ret.p_ci[0]],
-        'ci upper' : [ret.p_ci[1]],
-        'R2(y,c)' : [ret.r2_y_c],
-        'R2(y^,c)' : [ret.r2_yhat_c],
-        'R2(y,y^)' : [ret.r2_y_yhat],
-    })
 
 
 .. parsed-literal::
@@ -264,18 +244,16 @@ confounded model.
 .. code:: ipython3
 
     plot_null_dist(ret)
+
     # The labels on the graph plot can be customized:
     plot_graph(ret, y_name='IQ', yhat_name='prediction', c_name='age', outfile_base='example')
 
 
+.. image:: _static/quickstart_13_1.png
 
 
-.. image:: quickstart_files/quickstart_13_0.svg
+.. image:: _static/quickstart_13_0.svg
 
-
-
-
-.. image:: quickstart_files/quickstart_13_1.png
 
 
 The low p-value provides evidence against the null hypothesis of
@@ -285,8 +263,8 @@ and indicates that the model predictions are biased.
 +-----------------------------------------------------------------------+
 | Note                                                                  |
 +-----------------------------------------------------------------------+
-| For parametric corrections for multiple comparisons (e.g. false       |
-| discover##### Partial confound testy rate in case of testing many     |
+| For parametric corrections for multiple comparisons (e.g. false       |
+| discovery rate in case of testing many                                |
 | confounders), permutation based p-values must be adjusted if they are |
 | zero. A decent option could be in this case to use the upper binomial |
 | confidence limit (``p_ci[1]``), instead.                              |

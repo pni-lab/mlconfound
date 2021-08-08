@@ -7,15 +7,14 @@ Welcome to the docs of 'mlconfound'!
 ==========
 Tools for analyzing and quantifying effects of counfounder variables on machine learning model predictions.
 
-.. image:: _static/biased-model-example.png
-  :width: 500
-  :alt: biased model example
 
 Install
 --------
 .. code-block:: bash
 
    pip install mlconfound
+
+
 
 Example
 --------
@@ -24,6 +23,11 @@ Example
    from mlconfound.stats import partial_confound_test
 
    partial_confound_test(y, yhat, c)
+
+
+.. image:: _static/biased-model-example.png
+  :width: 500
+  :alt: biased model example
 
 
 More
