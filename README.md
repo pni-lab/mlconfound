@@ -26,7 +26,7 @@ from mlconfound.stats import test_partially_confounded
 test_partially_confounded(y, yhat, c)
 ````
 
-See documentation for more details.
+Read the docs for more details.
 
 ## Documentation [![Documentation Status](https://readthedocs.org/projects/mlconfound/badge/?version=latest)](https://mlconfound.readthedocs.io/en/latest/?badge=latest)
 https://mlconfound.readthedocs.io/en/latest/ 
