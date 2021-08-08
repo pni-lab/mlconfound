@@ -1,0 +1,250 @@
+
+<!DOCTYPE html>
+
+<html>
+  <head>
+    <meta charset="utf-8" />
+    <meta name="viewport" content="width=device-width, initial-scale=1.0" /><meta name="generator" content="Docutils 0.17.1: http://docutils.sourceforge.net/" />
+
+    <title>Documentation &#8212; mlconfound  documentation</title>
+    <link rel="stylesheet" type="text/css" href="_static/pygments.css" />
+    <link rel="stylesheet" type="text/css" href="_static/alabaster.css" />
+    <script data-url_root="./" id="documentation_options" src="_static/documentation_options.js"></script>
+    <script src="_static/jquery.js"></script>
+    <script src="_static/underscore.js"></script>
+    <script src="_static/doctools.js"></script>
+    <script crossorigin="anonymous" integrity="sha256-Ae2Vz/4ePdIu6ZyI/5ZGsYnb+m0JlOmKPjt6XZ9JJkA=" src="https://cdnjs.cloudflare.com/ajax/libs/require.js/2.3.4/require.min.js"></script>
+    <link rel="author" title="About these documents" href="about.html" />
+    <link rel="index" title="Index" href="genindex.html" />
+    <link rel="search" title="Search" href="search.html" />
+    <link rel="prev" title="Quickstart" href="quickstart.html" />
+   
+  <link rel="stylesheet" href="_static/custom.css" type="text/css" />
+  
+  
+  <meta name="viewport" content="width=device-width, initial-scale=0.9, maximum-scale=0.9" />
+
+  </head><body>
+  
+
+    <div class="document">
+      <div class="documentwrapper">
+        <div class="bodywrapper">
+          
+
+          <div class="body" role="main">
+            
+  <section class="tex2jax_ignore mathjax_ignore" id="documentation">
+<h1>Documentation<a class="headerlink" href="#documentation" title="Permalink to this headline">¶</a></h1>
+<hr class="docutils" />
+<section id="module-mlconfound.stats">
+<span id="mlconfound-stats"></span><h2>mlconfound.stats<a class="headerlink" href="#module-mlconfound.stats" title="Permalink to this headline">¶</a></h2>
+<dl class="py function">
+<dt class="sig sig-object py" id="mlconfound.stats.test_partially_confounded">
+<span class="sig-prename descclassname"><span class="pre">mlconfound.stats.</span></span><span class="sig-name descname"><span class="pre">test_partially_confounded</span></span><span class="sig-paren">(</span><em class="sig-param"><span class="n"><span class="pre">y</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">yhat</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">c</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">num_perms</span></span><span class="o"><span class="pre">=</span></span><span class="default_value"><span class="pre">1000</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">cat_y</span></span><span class="o"><span class="pre">=</span></span><span class="default_value"><span class="pre">False</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">cat_yhat</span></span><span class="o"><span class="pre">=</span></span><span class="default_value"><span class="pre">False</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">cat_c</span></span><span class="o"><span class="pre">=</span></span><span class="default_value"><span class="pre">False</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">mcmc_nstep</span></span><span class="o"><span class="pre">=</span></span><span class="default_value"><span class="pre">50</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">cond_dist_method</span></span><span class="o"><span class="pre">=</span></span><span class="default_value"><span class="pre">'GaussianReg'</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">return_null_dist</span></span><span class="o"><span class="pre">=</span></span><span class="default_value"><span class="pre">False</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">random_state</span></span><span class="o"><span class="pre">=</span></span><span class="default_value"><span class="pre">None</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">progress</span></span><span class="o"><span class="pre">=</span></span><span class="default_value"><span class="pre">True</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">n_jobs</span></span><span class="o"><span class="pre">=</span></span><span class="default_value"><span class="pre">-</span> <span class="pre">1</span></span></em><span class="sig-paren">)</span><a class="reference internal" href="_modules/mlconfound/stats.html#test_partially_confounded"><span class="viewcode-link"><span class="pre">[source]</span></span></a><a class="headerlink" href="#mlconfound.stats.test_partially_confounded" title="Permalink to this definition">¶</a></dt>
+<dd><p>Partial Confounder Test</p>
+<dl class="field-list">
+<dt class="field-odd">Parameters</dt>
+<dd class="field-odd"><dl class="simple">
+<dt><strong>y</strong><span class="classifier">array_like</span></dt><dd><p>Target variable.</p>
+</dd>
+<dt><strong>yhat</strong><span class="classifier">array_like</span></dt><dd><p>Predictions.</p>
+</dd>
+<dt><strong>c</strong><span class="classifier">array_like</span></dt><dd><p>Confounder variable.</p>
+</dd>
+<dt><strong>num_perms</strong><span class="classifier">int</span></dt><dd><p>Number of conditional permutations.</p>
+</dd>
+<dt><strong>cat_y</strong><span class="classifier">bool</span></dt><dd><p>Flag for categorical target variable (classification).</p>
+</dd>
+<dt><strong>cat_yhat</strong><span class="classifier">bool</span></dt><dd><p>Flag for categorical predictions (classification). Must be false, if class probabilities are used.</p>
+</dd>
+<dt><strong>cat_c</strong><span class="classifier">bool</span></dt><dd><p>Flag for categorical confounder variable (e.g center, sex or batch).</p>
+</dd>
+<dt><strong>mcmc_nstep</strong><span class="classifier">int</span></dt><dd><p>Number of steps for the Markov-chain Monte Carlo sampling.</p>
+</dd>
+<dt><strong>cond_dist_method {GaussianReg}</strong></dt><dd><p>Method to estimate the conditional distribution. Currently only Gaussian estimation is supported.</p>
+</dd>
+<dt><strong>return_null_dist</strong><span class="classifier">bool</span></dt><dd><p>Whether permuted null distribution should be returned (e.g. for plotting purposes).</p>
+</dd>
+<dt><strong>random_state</strong><span class="classifier">int or None</span></dt><dd><p>Random state for the conditional permutation.</p>
+</dd>
+<dt><strong>progress</strong><span class="classifier">bool</span></dt><dd><p>Whether to print out progress bar.</p>
+</dd>
+<dt><strong>n_jobs</strong><span class="classifier">int</span></dt><dd><p>Number of parallel jobs (-1: use all available processors).</p>
+</dd>
+</dl>
+</dd>
+<dt class="field-even">Returns</dt>
+<dd class="field-even"><dl>
+<dt>ResultsPartiallyConfounded</dt><dd><p>Named tuple with the fields:
+- r2_y_c: coefficient-of-determination between y and c
+- r2_yhat_c: coefficient-of-determination between yhat and c
+- r2_y_yhat: coefficient-of-determination between y and yhat
+- p: p-value
+- p_ci: binomial 95% confidence interval for the p-value
+- null_distribution: numpy.ndarray containing the permuted null distribution or None depending on teh value of</p>
+<blockquote>
+<div><p>return_null_dist</p>
+</div></blockquote>
+</dd>
+</dl>
+</dd>
+</dl>
+<div class="admonition seealso">
+<p class="admonition-title">See also</p>
+<dl class="simple">
+<dt><code class="xref py py-obj docutils literal notranslate"><span class="pre">test_fully_confounded</span></code></dt><dd></dd>
+</dl>
+</div>
+<p class="rubric">Notes</p>
+<p>Performs partial confounder test, a statistical test described in <a href="#id1"><span class="problematic" id="id1">[1]_</span></a> and
+based on the conditional permutation test for independence <a href="#id2"><span class="problematic" id="id2">[2]_</span></a>.
+The null hypothesis of the test is that the model predictions are independent of the confounder,
+given the target variable, i.e. there is no-confounder bias.
+A low p-value therefore indicates significant confounder bias.</p>
+<p>The method has no assumptions about the distribution of yhat, but assumes normality for the conditional distribution
+(c | y). It is however, fairly robust to violating this assumptions, see <a href="#id3"><span class="problematic" id="id3">[1]_</span></a>.</p>
+<p class="rubric">References</p>
+<dl class="simple">
+<dt>[1] Spisak, Tamas “A conditional permutation-based approach to test confounder effect</dt><dd><p>and center-bias in machine learning models”, in prep.</p>
+</dd>
+</dl>
+<p>[2] Berrett, Thomas B., et al. “The conditional permutation test for independence
+while controlling for confounders.”
+Journal of the Royal Statistical Society: Series B (Statistical Methodology) 82.1 (2020): 175-197.</p>
+<p class="rubric">Examples</p>
+<p>See <cite>notebooks/quickstart.ipynb</cite> for more detailed examples.</p>
+<div class="doctest highlight-default notranslate"><div class="highlight"><pre><span></span><span class="gp">&gt;&gt;&gt; </span><span class="n">test_partially_confounded</span><span class="p">(</span><span class="n">y</span><span class="o">=</span><span class="p">[</span><span class="mi">1</span><span class="p">,</span><span class="mi">2</span><span class="p">,</span><span class="mi">3</span><span class="p">,</span><span class="mi">4</span><span class="p">,</span><span class="mi">5</span><span class="p">,</span><span class="mi">6</span><span class="p">],</span> <span class="n">yhat</span><span class="o">=</span><span class="p">[</span><span class="mf">1.5</span><span class="p">,</span><span class="mf">2.3</span><span class="p">,</span><span class="mf">2.9</span><span class="p">,</span><span class="mf">4.2</span><span class="p">,</span><span class="mi">5</span><span class="p">,</span><span class="mf">5.7</span><span class="p">],</span> <span class="n">c</span><span class="o">=</span><span class="p">[</span><span class="mi">3</span><span class="p">,</span><span class="mi">5</span><span class="p">,</span><span class="mi">4</span><span class="p">,</span><span class="mi">6</span><span class="p">,</span><span class="mi">1</span><span class="p">,</span><span class="mi">2</span><span class="p">],</span> <span class="n">random_state</span><span class="o">=</span><span class="mi">42</span><span class="p">)</span><span class="o">.</span><span class="n">p</span>
+<span class="go">0.692</span>
+</pre></div>
+</div>
+</dd></dl>
+
+</section>
+<hr class="docutils" />
+<section id="module-mlconfound.plot">
+<span id="mlconfound-plot"></span><h2>mlconfound.plot<a class="headerlink" href="#module-mlconfound.plot" title="Permalink to this headline">¶</a></h2>
+</section>
+<hr class="docutils" />
+<section id="module-mlconfound.simulate">
+<span id="mlconfound-simulate"></span><h2>mlconfound.simulate<a class="headerlink" href="#module-mlconfound.simulate" title="Permalink to this headline">¶</a></h2>
+<dl class="py function">
+<dt class="sig sig-object py" id="mlconfound.simulate.sinh_arcsinh">
+<span class="sig-prename descclassname"><span class="pre">mlconfound.simulate.</span></span><span class="sig-name descname"><span class="pre">sinh_arcsinh</span></span><span class="sig-paren">(</span><em class="sig-param"><span class="n"><span class="pre">x</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">delta</span></span><span class="o"><span class="pre">=</span></span><span class="default_value"><span class="pre">1</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">epsilon</span></span><span class="o"><span class="pre">=</span></span><span class="default_value"><span class="pre">0</span></span></em><span class="sig-paren">)</span><a class="reference internal" href="_modules/mlconfound/simulate.html#sinh_arcsinh"><span class="viewcode-link"><span class="pre">[source]</span></span></a><a class="headerlink" href="#mlconfound.simulate.sinh_arcsinh" title="Permalink to this definition">¶</a></dt>
+<dd><p>Sinh-arcsinh transformation</p>
+<dl class="field-list simple">
+<dt class="field-odd">Parameters</dt>
+<dd class="field-odd"><dl class="simple">
+<dt><strong>x</strong><span class="classifier">array_like</span></dt><dd><p>Normally distributed input data.</p>
+</dd>
+<dt><strong>delta</strong><span class="classifier">float</span></dt><dd><p>Parameter to control kurtosis, delta=1 means no change.</p>
+</dd>
+<dt><strong>epsilon</strong><span class="classifier">float</span></dt><dd><p>Parameter to control skewness, epsilon=0 means no change.</p>
+</dd>
+<dt><strong>Returns</strong></dt><dd></dd>
+<dt><strong>——-</strong></dt><dd></dd>
+<dt><strong>array_like</strong></dt><dd><p>Transformed data.</p>
+</dd>
+</dl>
+</dd>
+</dl>
+<div class="admonition seealso">
+<p class="admonition-title">See also</p>
+<dl class="simple">
+<dt><code class="xref py py-obj docutils literal notranslate"><span class="pre">simulate_y_c_yhat</span></code></dt><dd></dd>
+</dl>
+</div>
+<p class="rubric">Notes</p>
+<p>The sinh-arcsinh transformation of Jones and Pewsey <a href="#id4"><span class="problematic" id="id1">[1]_</span></a> can be used to transfrom Normal distribution to non-normal.</p>
+<p class="rubric">References</p>
+<p>[1] Jones, M. C. and Pewsey A. (2009). Sinh-arcsinh distributions. Biometrika 96: 761–780</p>
+<p class="rubric">Examples</p>
+<p>See <cite>validation/simulation.py</cite> for an application example.</p>
+<div class="doctest highlight-default notranslate"><div class="highlight"><pre><span></span><span class="gp">&gt;&gt;&gt; </span><span class="n">sinh_arcsinh</span><span class="p">([</span><span class="o">-</span><span class="mi">1</span><span class="p">,</span> <span class="o">-</span><span class="mf">0.5</span><span class="p">,</span> <span class="o">-</span><span class="mf">0.1</span><span class="p">,</span> <span class="mf">0.1</span><span class="p">,</span> <span class="mf">0.5</span><span class="p">,</span> <span class="mi">1</span><span class="p">],</span> <span class="n">delta</span><span class="o">=</span><span class="mi">2</span><span class="p">,</span> <span class="n">epsilon</span><span class="o">=</span><span class="mi">1</span><span class="p">)</span>
+<span class="go">array([-7.8900947 , -3.48801839, -1.50886059, -0.88854985, -0.03758519,</span>
+<span class="go">    0.83888754])</span>
+</pre></div>
+</div>
+</dd></dl>
+
+<hr class="footnotes docutils" />
+</section>
+</section>
+
+
+          </div>
+          
+        </div>
+      </div>
+      <div class="sphinxsidebar" role="navigation" aria-label="main navigation">
+        <div class="sphinxsidebarwrapper">
+<h1 class="logo"><a href="index.html">mlconfound</a></h1>
+
+
+
+
+
+
+
+
+<h3>Navigation</h3>
+<p class="caption" role="heading"><span class="caption-text">Contents:</span></p>
+<ul class="current">
+<li class="toctree-l1"><a class="reference internal" href="about.html">About the package mlconfound</a></li>
+<li class="toctree-l1"><a class="reference internal" href="install.html">Install</a></li>
+<li class="toctree-l1"><a class="reference internal" href="quickstart.html">Quickstart</a></li>
+<li class="toctree-l1 current"><a class="current reference internal" href="#">Documentation</a><ul>
+<li class="toctree-l2"><a class="reference internal" href="#module-mlconfound.stats">mlconfound.stats</a></li>
+<li class="toctree-l2"><a class="reference internal" href="#module-mlconfound.plot">mlconfound.plot</a></li>
+<li class="toctree-l2"><a class="reference internal" href="#module-mlconfound.simulate">mlconfound.simulate</a></li>
+</ul>
+</li>
+</ul>
+
+<div class="relations">
+<h3>Related Topics</h3>
+<ul>
+  <li><a href="index.html">Documentation overview</a><ul>
+      <li>Previous: <a href="quickstart.html" title="previous chapter">Quickstart</a></li>
+  </ul></li>
+</ul>
+</div>
+<div id="searchbox" style="display: none" role="search">
+  <h3 id="searchlabel">Quick search</h3>
+    <div class="searchformwrapper">
+    <form class="search" action="search.html" method="get">
+      <input type="text" name="q" aria-labelledby="searchlabel" autocomplete="off" autocorrect="off" autocapitalize="off" spellcheck="false"/>
+      <input type="submit" value="Go" />
+    </form>
+    </div>
+</div>
+<script>$('#searchbox').show(0);</script>
+
+
+
+
+
+
+
+
+        </div>
+      </div>
+      <div class="clearer"></div>
+    </div>
+    <div class="footer">
+      &copy;2021, Tamas Spisak.
+      
+      |
+      Powered by <a href="http://sphinx-doc.org/">Sphinx 4.1.2</a>
+      &amp; <a href="https://github.com/bitprophet/alabaster">Alabaster 0.7.12</a>
+      
+      |
+      <a href="_sources/docs.md.txt"
+          rel="nofollow">Page source</a>
+    </div>
+
+    
+
+    
+  </body>
+</html>

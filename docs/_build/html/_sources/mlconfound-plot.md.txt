@@ -1,0 +1,10 @@
+## mlconfound.stats
+
+.. toctree::
+   about.md
+   docs.md
+   :maxdepth: 2
+   :caption: Contents:
+
+.. automodule:: mlconfound.plot
+    :members:

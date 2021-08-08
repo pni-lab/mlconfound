@@ -1,0 +1,446 @@
+
+<!DOCTYPE html>
+
+<html>
+  <head>
+    <meta charset="utf-8" />
+    <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+    <title>mlconfound.stats &#8212; mlconfound  documentation</title>
+    <link rel="stylesheet" type="text/css" href="../../_static/pygments.css" />
+    <link rel="stylesheet" type="text/css" href="../../_static/alabaster.css" />
+    <script data-url_root="../../" id="documentation_options" src="../../_static/documentation_options.js"></script>
+    <script src="../../_static/jquery.js"></script>
+    <script src="../../_static/underscore.js"></script>
+    <script src="../../_static/doctools.js"></script>
+    <script crossorigin="anonymous" integrity="sha256-Ae2Vz/4ePdIu6ZyI/5ZGsYnb+m0JlOmKPjt6XZ9JJkA=" src="https://cdnjs.cloudflare.com/ajax/libs/require.js/2.3.4/require.min.js"></script>
+    <link rel="author" title="About these documents" href="../../about.html" />
+    <link rel="index" title="Index" href="../../genindex.html" />
+    <link rel="search" title="Search" href="../../search.html" />
+   
+  <link rel="stylesheet" href="../../_static/custom.css" type="text/css" />
+  
+  
+  <meta name="viewport" content="width=device-width, initial-scale=0.9, maximum-scale=0.9" />
+
+  </head><body>
+  
+
+    <div class="document">
+      <div class="documentwrapper">
+        <div class="bodywrapper">
+          
+
+          <div class="body" role="main">
+            
+  <h1>Source code for mlconfound.stats</h1><div class="highlight"><pre>
+<span></span><span class="kn">from</span> <span class="nn">collections</span> <span class="kn">import</span> <span class="n">namedtuple</span>
+
+<span class="kn">import</span> <span class="nn">numpy</span> <span class="k">as</span> <span class="nn">np</span>
+<span class="kn">import</span> <span class="nn">pandas</span> <span class="k">as</span> <span class="nn">pd</span>
+<span class="kn">from</span> <span class="nn">joblib</span> <span class="kn">import</span> <span class="n">Parallel</span><span class="p">,</span> <span class="n">delayed</span>
+<span class="kn">from</span> <span class="nn">scipy.stats</span> <span class="kn">import</span> <span class="n">beta</span><span class="p">,</span> <span class="n">norm</span>
+<span class="kn">from</span> <span class="nn">statsmodels.formula.api</span> <span class="kn">import</span> <span class="n">ols</span><span class="p">,</span> <span class="n">mnlogit</span>
+<span class="kn">from</span> <span class="nn">tqdm</span> <span class="kn">import</span> <span class="n">tqdm</span>
+
+<span class="kn">from</span> <span class="nn">._utils</span> <span class="kn">import</span> <span class="n">tqdm_joblib</span>
+
+
+<span class="k">def</span> <span class="nf">_r2_cont_cont</span><span class="p">(</span><span class="n">x</span><span class="p">,</span> <span class="n">y</span><span class="p">):</span>
+    <span class="c1"># faster than scipy or statmodels</span>
+    <span class="k">return</span> <span class="n">np</span><span class="o">.</span><span class="n">corrcoef</span><span class="p">(</span><span class="n">x</span><span class="p">,</span> <span class="n">y</span><span class="p">)[</span><span class="mi">0</span><span class="p">,</span> <span class="mi">1</span><span class="p">]</span> <span class="o">**</span> <span class="mi">2</span>
+
+
+<span class="k">def</span> <span class="nf">_r2_cat_cont</span><span class="p">(</span><span class="n">x</span><span class="p">,</span> <span class="n">y</span><span class="p">):</span>
+    <span class="n">df</span> <span class="o">=</span> <span class="n">pd</span><span class="o">.</span><span class="n">DataFrame</span><span class="p">({</span>
+        <span class="s1">&#39;x&#39;</span><span class="p">:</span> <span class="n">x</span><span class="p">,</span>
+        <span class="s1">&#39;y&#39;</span><span class="p">:</span> <span class="n">y</span>
+    <span class="p">})</span>
+    <span class="n">fit</span> <span class="o">=</span> <span class="n">ols</span><span class="p">(</span><span class="s1">&#39;y ~ C(x)&#39;</span><span class="p">,</span> <span class="n">data</span><span class="o">=</span><span class="n">df</span><span class="p">)</span><span class="o">.</span><span class="n">fit</span><span class="p">()</span>
+    <span class="k">return</span> <span class="n">fit</span><span class="o">.</span><span class="n">rsquared</span><span class="o">.</span><span class="n">flatten</span><span class="p">()[</span><span class="mi">0</span><span class="p">]</span>
+
+
+<span class="k">def</span> <span class="nf">_r2_cont_cat</span><span class="p">(</span><span class="n">x</span><span class="p">,</span> <span class="n">y</span><span class="p">):</span>
+    <span class="k">return</span> <span class="n">_r2_cat_cont</span><span class="p">(</span><span class="n">y</span><span class="p">,</span> <span class="n">x</span><span class="p">)</span>
+
+
+<span class="k">def</span> <span class="nf">_r2_cat_cat</span><span class="p">(</span><span class="n">x</span><span class="p">,</span> <span class="n">y</span><span class="p">):</span>
+    <span class="n">df</span> <span class="o">=</span> <span class="n">pd</span><span class="o">.</span><span class="n">DataFrame</span><span class="p">({</span>
+        <span class="s1">&#39;x&#39;</span><span class="p">:</span> <span class="n">x</span><span class="p">,</span>
+        <span class="s1">&#39;y&#39;</span><span class="p">:</span> <span class="n">y</span>
+    <span class="p">})</span>
+    <span class="n">fit</span> <span class="o">=</span> <span class="n">mnlogit</span><span class="p">(</span><span class="s1">&#39;y ~ C(x)&#39;</span><span class="p">,</span> <span class="n">data</span><span class="o">=</span><span class="n">df</span><span class="p">)</span><span class="o">.</span><span class="n">fit</span><span class="p">(</span><span class="n">disp</span><span class="o">=</span><span class="mi">0</span><span class="p">,</span> <span class="n">method</span><span class="o">=</span><span class="s1">&#39;powell&#39;</span><span class="p">)</span>
+    <span class="k">return</span> <span class="n">fit</span><span class="o">.</span><span class="n">prsquared</span>
+
+
+<span class="k">def</span> <span class="nf">_r2_cat_cat_r</span><span class="p">(</span><span class="n">x</span><span class="p">,</span> <span class="n">y</span><span class="p">):</span>
+    <span class="k">return</span> <span class="n">_r2_cat_cat</span><span class="p">(</span><span class="n">y</span><span class="p">,</span> <span class="n">x</span><span class="p">)</span>
+
+
+<span class="k">def</span> <span class="nf">_r2_factory</span><span class="p">(</span><span class="n">cat_x</span><span class="p">,</span> <span class="n">cat_y</span><span class="p">,</span> <span class="n">reverse_cat</span><span class="o">=</span><span class="kc">False</span><span class="p">):</span>
+    <span class="k">if</span> <span class="n">cat_x</span> <span class="ow">and</span> <span class="n">cat_y</span><span class="p">:</span>
+        <span class="k">if</span> <span class="n">reverse_cat</span><span class="p">:</span>
+            <span class="k">return</span> <span class="n">_r2_cat_cat_r</span>
+        <span class="k">else</span><span class="p">:</span>
+            <span class="k">return</span> <span class="n">_r2_cat_cat</span>
+    <span class="k">elif</span> <span class="n">cat_x</span><span class="p">:</span>
+        <span class="k">return</span> <span class="n">_r2_cat_cont</span>
+    <span class="k">elif</span> <span class="n">cat_y</span><span class="p">:</span>
+        <span class="k">return</span> <span class="n">_r2_cont_cat</span>
+    <span class="k">else</span><span class="p">:</span>
+        <span class="k">return</span> <span class="n">_r2_cont_cont</span>
+
+
+<span class="k">def</span> <span class="nf">_binom_ci</span><span class="p">(</span><span class="n">success</span><span class="p">,</span> <span class="n">total</span><span class="p">,</span> <span class="n">ci</span><span class="o">=</span><span class="mf">0.95</span><span class="p">):</span>
+    <span class="n">quantile</span> <span class="o">=</span> <span class="p">(</span><span class="mi">1</span> <span class="o">-</span> <span class="n">ci</span><span class="p">)</span> <span class="o">/</span> <span class="mi">2</span>
+    <span class="n">lower</span> <span class="o">=</span> <span class="n">beta</span><span class="o">.</span><span class="n">ppf</span><span class="p">(</span><span class="n">quantile</span><span class="p">,</span> <span class="n">success</span><span class="p">,</span> <span class="n">total</span> <span class="o">-</span> <span class="n">success</span> <span class="o">+</span> <span class="mi">1</span><span class="p">)</span>
+    <span class="n">upper</span> <span class="o">=</span> <span class="n">beta</span><span class="o">.</span><span class="n">ppf</span><span class="p">(</span><span class="mi">1</span> <span class="o">-</span> <span class="n">quantile</span><span class="p">,</span> <span class="n">success</span> <span class="o">+</span> <span class="mi">1</span><span class="p">,</span> <span class="n">total</span> <span class="o">-</span> <span class="n">success</span><span class="p">)</span>
+    <span class="k">if</span> <span class="n">np</span><span class="o">.</span><span class="n">isnan</span><span class="p">(</span><span class="n">lower</span><span class="p">):</span>
+        <span class="n">lower</span> <span class="o">=</span> <span class="mi">0</span>
+    <span class="k">if</span> <span class="n">np</span><span class="o">.</span><span class="n">isnan</span><span class="p">(</span><span class="n">upper</span><span class="p">):</span>
+        <span class="n">upper</span> <span class="o">=</span> <span class="mi">0</span>
+    <span class="k">return</span> <span class="n">lower</span><span class="p">,</span> <span class="n">upper</span>
+
+
+<span class="k">def</span> <span class="nf">_mnlogit_cdf</span><span class="p">(</span><span class="n">fit</span><span class="p">,</span> <span class="n">df</span><span class="p">):</span>
+    <span class="n">mat</span> <span class="o">=</span> <span class="n">np</span><span class="o">.</span><span class="n">log</span><span class="p">(</span><span class="n">fit</span><span class="o">.</span><span class="n">predict</span><span class="p">(</span><span class="n">df</span><span class="p">))</span>  <span class="c1"># predict returns class probabilities</span>
+    <span class="n">mat</span><span class="o">.</span><span class="n">index</span> <span class="o">=</span> <span class="n">df</span><span class="o">.</span><span class="n">Z</span>
+    <span class="n">labels</span> <span class="o">=</span> <span class="n">np</span><span class="o">.</span><span class="n">unique</span><span class="p">(</span><span class="n">df</span><span class="o">.</span><span class="n">X</span><span class="p">)</span>
+    <span class="n">columns</span> <span class="o">=</span> <span class="p">[</span><span class="n">np</span><span class="o">.</span><span class="n">argwhere</span><span class="p">(</span><span class="n">labels</span> <span class="o">==</span> <span class="n">i</span><span class="p">)</span><span class="o">.</span><span class="n">flatten</span><span class="p">()[</span><span class="mi">0</span><span class="p">]</span> <span class="k">for</span> <span class="n">i</span> <span class="ow">in</span> <span class="n">df</span><span class="o">.</span><span class="n">X</span><span class="p">]</span>  <span class="c1"># label 2 index</span>
+    <span class="k">return</span> <span class="n">mat</span><span class="o">.</span><span class="n">iloc</span><span class="p">[:,</span> <span class="n">columns</span><span class="p">]</span><span class="o">.</span><span class="n">values</span><span class="o">.</span><span class="n">T</span>
+
+
+<span class="k">def</span> <span class="nf">_gauss_cdf</span><span class="p">(</span><span class="n">fit</span><span class="p">,</span> <span class="n">df</span><span class="p">):</span>
+    <span class="n">mu</span> <span class="o">=</span> <span class="n">np</span><span class="o">.</span><span class="n">array</span><span class="p">(</span><span class="n">fit</span><span class="o">.</span><span class="n">predict</span><span class="p">(</span><span class="n">df</span><span class="p">))</span>
+    <span class="n">resid</span> <span class="o">=</span> <span class="n">df</span><span class="o">.</span><span class="n">X</span><span class="o">.</span><span class="n">values</span> <span class="o">-</span> <span class="n">mu</span>
+    <span class="n">sigma</span> <span class="o">=</span> <span class="n">np</span><span class="o">.</span><span class="n">repeat</span><span class="p">(</span><span class="n">np</span><span class="o">.</span><span class="n">std</span><span class="p">(</span><span class="n">resid</span><span class="p">),</span> <span class="nb">len</span><span class="p">(</span><span class="n">df</span><span class="o">.</span><span class="n">Z</span><span class="o">.</span><span class="n">values</span><span class="p">))</span>
+    <span class="c1"># X | Z = Z_i ~ N(mu[i], sig2[i])</span>
+    <span class="k">return</span> <span class="n">np</span><span class="o">.</span><span class="n">array</span><span class="p">([</span><span class="n">norm</span><span class="o">.</span><span class="n">logpdf</span><span class="p">(</span><span class="n">df</span><span class="o">.</span><span class="n">X</span><span class="o">.</span><span class="n">values</span><span class="p">,</span> <span class="n">loc</span><span class="o">=</span><span class="n">m</span><span class="p">,</span> <span class="n">scale</span><span class="o">=</span><span class="n">sigma</span><span class="p">)</span> <span class="k">for</span> <span class="n">m</span> <span class="ow">in</span> <span class="n">mu</span><span class="p">])</span><span class="o">.</span><span class="n">T</span>
+
+
+<span class="k">def</span> <span class="nf">_conditional_log_likelihood_gaussian_cont_cont</span><span class="p">(</span><span class="n">X0</span><span class="p">,</span> <span class="n">Z</span><span class="p">):</span>
+    <span class="n">df</span> <span class="o">=</span> <span class="n">pd</span><span class="o">.</span><span class="n">DataFrame</span><span class="p">({</span>
+        <span class="s1">&#39;Z&#39;</span><span class="p">:</span> <span class="n">Z</span><span class="p">,</span>
+        <span class="s1">&#39;X&#39;</span><span class="p">:</span> <span class="n">X0</span>
+    <span class="p">})</span>
+    <span class="n">fit</span> <span class="o">=</span> <span class="n">ols</span><span class="p">(</span><span class="s1">&#39;X ~ Z&#39;</span><span class="p">,</span> <span class="n">data</span><span class="o">=</span><span class="n">df</span><span class="p">)</span><span class="o">.</span><span class="n">fit</span><span class="p">()</span>
+    <span class="k">return</span> <span class="n">_gauss_cdf</span><span class="p">(</span><span class="n">fit</span><span class="p">,</span> <span class="n">df</span><span class="p">)</span>
+
+
+<span class="k">def</span> <span class="nf">_conditional_log_likelihood_gaussian_cont_cat</span><span class="p">(</span><span class="n">X0</span><span class="p">,</span> <span class="n">Z</span><span class="p">):</span>
+    <span class="n">df</span> <span class="o">=</span> <span class="n">pd</span><span class="o">.</span><span class="n">DataFrame</span><span class="p">({</span>
+        <span class="s1">&#39;Z&#39;</span><span class="p">:</span> <span class="n">Z</span><span class="p">,</span>
+        <span class="s1">&#39;X&#39;</span><span class="p">:</span> <span class="n">X0</span>
+    <span class="p">})</span>
+    <span class="n">fit</span> <span class="o">=</span> <span class="n">ols</span><span class="p">(</span><span class="s1">&#39;X ~ C(Z)&#39;</span><span class="p">,</span> <span class="n">data</span><span class="o">=</span><span class="n">df</span><span class="p">)</span><span class="o">.</span><span class="n">fit</span><span class="p">()</span>
+    <span class="k">return</span> <span class="n">_gauss_cdf</span><span class="p">(</span><span class="n">fit</span><span class="p">,</span> <span class="n">df</span><span class="p">)</span>
+
+
+<span class="k">def</span> <span class="nf">_conditional_log_likelihood_gaussian_cat_cont</span><span class="p">(</span><span class="n">X0</span><span class="p">,</span> <span class="n">Z</span><span class="p">):</span>
+    <span class="n">df</span> <span class="o">=</span> <span class="n">pd</span><span class="o">.</span><span class="n">DataFrame</span><span class="p">({</span>
+        <span class="s1">&#39;Z&#39;</span><span class="p">:</span> <span class="n">Z</span><span class="p">,</span>
+        <span class="s1">&#39;X&#39;</span><span class="p">:</span> <span class="n">X0</span>
+    <span class="p">})</span>
+    <span class="n">fit</span> <span class="o">=</span> <span class="n">mnlogit</span><span class="p">(</span><span class="s1">&#39;X ~ Z&#39;</span><span class="p">,</span> <span class="n">data</span><span class="o">=</span><span class="n">df</span><span class="p">)</span><span class="o">.</span><span class="n">fit</span><span class="p">(</span><span class="n">disp</span><span class="o">=</span><span class="mi">0</span><span class="p">,</span> <span class="n">method</span><span class="o">=</span><span class="s1">&#39;powell&#39;</span><span class="p">)</span>
+    <span class="k">return</span> <span class="n">_mnlogit_cdf</span><span class="p">(</span><span class="n">fit</span><span class="p">,</span> <span class="n">df</span><span class="p">)</span>
+
+
+<span class="k">def</span> <span class="nf">_conditional_log_likelihood_gaussian_cat_cat</span><span class="p">(</span><span class="n">X0</span><span class="p">,</span> <span class="n">Z</span><span class="p">):</span>
+    <span class="n">df</span> <span class="o">=</span> <span class="n">pd</span><span class="o">.</span><span class="n">DataFrame</span><span class="p">({</span>
+        <span class="s1">&#39;Z&#39;</span><span class="p">:</span> <span class="n">Z</span><span class="p">,</span>
+        <span class="s1">&#39;X&#39;</span><span class="p">:</span> <span class="n">X0</span>
+    <span class="p">})</span>
+    <span class="n">fit</span> <span class="o">=</span> <span class="n">mnlogit</span><span class="p">(</span><span class="s1">&#39;X ~ C(Z)&#39;</span><span class="p">,</span> <span class="n">data</span><span class="o">=</span><span class="n">df</span><span class="p">)</span><span class="o">.</span><span class="n">fit</span><span class="p">(</span><span class="n">disp</span><span class="o">=</span><span class="mi">0</span><span class="p">,</span> <span class="n">method</span><span class="o">=</span><span class="s1">&#39;powell&#39;</span><span class="p">)</span>
+    <span class="k">return</span> <span class="n">_mnlogit_cdf</span><span class="p">(</span><span class="n">fit</span><span class="p">,</span> <span class="n">df</span><span class="p">)</span>
+
+
+<span class="k">def</span> <span class="nf">_conditional_log_likelihood_factory</span><span class="p">(</span><span class="n">cat_x</span><span class="p">,</span> <span class="n">cat_y</span><span class="p">):</span>
+    <span class="k">if</span> <span class="n">cat_x</span> <span class="ow">and</span> <span class="n">cat_y</span><span class="p">:</span>
+        <span class="k">return</span> <span class="n">_conditional_log_likelihood_gaussian_cat_cat</span>
+    <span class="k">elif</span> <span class="n">cat_x</span><span class="p">:</span>
+        <span class="k">return</span> <span class="n">_conditional_log_likelihood_gaussian_cat_cont</span>
+    <span class="k">elif</span> <span class="n">cat_y</span><span class="p">:</span>
+        <span class="k">return</span> <span class="n">_conditional_log_likelihood_gaussian_cont_cat</span>
+    <span class="k">else</span><span class="p">:</span>
+        <span class="k">return</span> <span class="n">_conditional_log_likelihood_gaussian_cont_cont</span>
+
+
+<span class="k">def</span> <span class="nf">_generate_X_CPT</span><span class="p">(</span><span class="n">nstep</span><span class="p">,</span> <span class="n">M</span><span class="p">,</span> <span class="n">log_lik_mat</span><span class="p">,</span> <span class="n">Pi_init</span><span class="o">=</span><span class="p">[],</span> <span class="n">random_state</span><span class="o">=</span><span class="kc">None</span><span class="p">):</span>
+    <span class="c1"># modified version of: http: // www.stat.uchicago.edu / ~rina / cpt / Bikeshare1.html</span>
+    <span class="c1"># Berrett, T.B., Wang, Y., Barber, R.F. and Samworth, R.J., 2020. The conditional permutation test</span>
+    <span class="c1"># for independence while controlling for confounders.</span>
+    <span class="c1"># Journal of the Royal Statistical Society: Series B (Statistical Methodology), 82(1), pp.175 - 197.</span>
+    <span class="n">n</span> <span class="o">=</span> <span class="n">log_lik_mat</span><span class="o">.</span><span class="n">shape</span><span class="p">[</span><span class="mi">0</span><span class="p">]</span>
+    <span class="k">if</span> <span class="nb">len</span><span class="p">(</span><span class="n">Pi_init</span><span class="p">)</span> <span class="o">==</span> <span class="mi">0</span><span class="p">:</span>
+        <span class="n">Pi_init</span> <span class="o">=</span> <span class="n">np</span><span class="o">.</span><span class="n">arange</span><span class="p">(</span><span class="n">n</span><span class="p">,</span> <span class="n">dtype</span><span class="o">=</span><span class="nb">int</span><span class="p">)</span>
+    <span class="n">Pi_</span> <span class="o">=</span> <span class="n">_generate_X_CPT_MC</span><span class="p">(</span><span class="n">nstep</span><span class="p">,</span> <span class="n">log_lik_mat</span><span class="p">,</span> <span class="n">Pi_init</span><span class="p">,</span> <span class="n">random_state</span><span class="o">=</span><span class="n">random_state</span><span class="p">)</span>
+    <span class="n">Pi_mat</span> <span class="o">=</span> <span class="n">np</span><span class="o">.</span><span class="n">zeros</span><span class="p">((</span><span class="n">M</span><span class="p">,</span> <span class="n">n</span><span class="p">),</span> <span class="n">dtype</span><span class="o">=</span><span class="nb">int</span><span class="p">)</span>
+    <span class="k">for</span> <span class="n">m</span> <span class="ow">in</span> <span class="nb">range</span><span class="p">(</span><span class="n">M</span><span class="p">):</span>
+        <span class="n">Pi_mat</span><span class="p">[</span><span class="n">m</span><span class="p">]</span> <span class="o">=</span> <span class="n">_generate_X_CPT_MC</span><span class="p">(</span><span class="n">nstep</span><span class="p">,</span> <span class="n">log_lik_mat</span><span class="p">,</span> <span class="n">Pi_</span><span class="p">,</span> <span class="n">random_state</span><span class="o">=</span><span class="n">random_state</span><span class="p">)</span>
+    <span class="k">return</span> <span class="n">Pi_mat</span>
+
+
+<span class="k">def</span> <span class="nf">_generate_X_CPT_MC</span><span class="p">(</span><span class="n">nstep</span><span class="p">,</span> <span class="n">log_lik_mat</span><span class="p">,</span> <span class="n">Pi</span><span class="p">,</span> <span class="n">random_state</span><span class="o">=</span><span class="kc">None</span><span class="p">):</span>
+    <span class="c1"># modified version of: http: // www.stat.uchicago.edu / ~rina / cpt / Bikeshare1.html</span>
+    <span class="c1"># Berrett, T.B., Wang, Y., Barber, R.F. and Samworth, R.J., 2020. The conditional permutation test</span>
+    <span class="c1"># for independence while controlling for confounders.</span>
+    <span class="c1"># Journal of the Royal Statistical Society: Series B (Statistical Methodology), 82(1), pp.175 - 197.</span>
+    <span class="n">n</span> <span class="o">=</span> <span class="nb">len</span><span class="p">(</span><span class="n">Pi</span><span class="p">)</span>
+    <span class="n">npair</span> <span class="o">=</span> <span class="n">np</span><span class="o">.</span><span class="n">floor</span><span class="p">(</span><span class="n">n</span> <span class="o">/</span> <span class="mi">2</span><span class="p">)</span><span class="o">.</span><span class="n">astype</span><span class="p">(</span><span class="nb">int</span><span class="p">)</span>
+    <span class="n">rng</span> <span class="o">=</span> <span class="n">np</span><span class="o">.</span><span class="n">random</span><span class="o">.</span><span class="n">default_rng</span><span class="p">(</span><span class="n">random_state</span><span class="p">)</span>
+    <span class="k">for</span> <span class="n">istep</span> <span class="ow">in</span> <span class="nb">range</span><span class="p">(</span><span class="n">nstep</span><span class="p">):</span>
+        <span class="n">perm</span> <span class="o">=</span> <span class="n">rng</span><span class="o">.</span><span class="n">choice</span><span class="p">(</span><span class="n">n</span><span class="p">,</span> <span class="n">n</span><span class="p">,</span> <span class="n">replace</span><span class="o">=</span><span class="kc">False</span><span class="p">)</span>
+        <span class="n">inds_i</span> <span class="o">=</span> <span class="n">perm</span><span class="p">[</span><span class="mi">0</span><span class="p">:</span><span class="n">npair</span><span class="p">]</span>
+        <span class="n">inds_j</span> <span class="o">=</span> <span class="n">perm</span><span class="p">[</span><span class="n">npair</span><span class="p">:(</span><span class="mi">2</span> <span class="o">*</span> <span class="n">npair</span><span class="p">)]</span>
+        <span class="c1"># for each k=1,...,npair, decide whether to swap Pi[inds_i[k]] with Pi[inds_j[k]]</span>
+        <span class="n">log_odds</span> <span class="o">=</span> <span class="n">log_lik_mat</span><span class="p">[</span><span class="n">Pi</span><span class="p">[</span><span class="n">inds_i</span><span class="p">],</span> <span class="n">inds_j</span><span class="p">]</span> <span class="o">+</span> <span class="n">log_lik_mat</span><span class="p">[</span><span class="n">Pi</span><span class="p">[</span><span class="n">inds_j</span><span class="p">],</span> <span class="n">inds_i</span><span class="p">]</span> \
+                   <span class="o">-</span> <span class="n">log_lik_mat</span><span class="p">[</span><span class="n">Pi</span><span class="p">[</span><span class="n">inds_i</span><span class="p">],</span> <span class="n">inds_i</span><span class="p">]</span> <span class="o">-</span> <span class="n">log_lik_mat</span><span class="p">[</span><span class="n">Pi</span><span class="p">[</span><span class="n">inds_j</span><span class="p">],</span> <span class="n">inds_j</span><span class="p">]</span>
+        <span class="n">swaps</span> <span class="o">=</span> <span class="n">rng</span><span class="o">.</span><span class="n">binomial</span><span class="p">(</span><span class="mi">1</span><span class="p">,</span> <span class="mi">1</span> <span class="o">/</span> <span class="p">(</span><span class="mi">1</span> <span class="o">+</span> <span class="n">np</span><span class="o">.</span><span class="n">exp</span><span class="p">(</span><span class="o">-</span><span class="n">np</span><span class="o">.</span><span class="n">maximum</span><span class="p">(</span><span class="o">-</span><span class="mi">500</span><span class="p">,</span> <span class="n">log_odds</span><span class="p">))))</span>
+        <span class="n">Pi</span><span class="p">[</span><span class="n">inds_i</span><span class="p">],</span> <span class="n">Pi</span><span class="p">[</span><span class="n">inds_j</span><span class="p">]</span> <span class="o">=</span> <span class="n">Pi</span><span class="p">[</span><span class="n">inds_i</span><span class="p">]</span> <span class="o">+</span> <span class="n">swaps</span> <span class="o">*</span> <span class="p">(</span><span class="n">Pi</span><span class="p">[</span><span class="n">inds_j</span><span class="p">]</span> <span class="o">-</span> <span class="n">Pi</span><span class="p">[</span><span class="n">inds_i</span><span class="p">]),</span> <span class="n">Pi</span><span class="p">[</span><span class="n">inds_j</span><span class="p">]</span> <span class="o">-</span> \
+                                 <span class="n">swaps</span> <span class="o">*</span> <span class="p">(</span><span class="n">Pi</span><span class="p">[</span><span class="n">inds_j</span><span class="p">]</span> <span class="o">-</span> <span class="n">Pi</span><span class="p">[</span><span class="n">inds_i</span><span class="p">])</span>
+    <span class="k">return</span> <span class="n">Pi</span>
+
+
+<span class="n">CptResults</span> <span class="o">=</span> <span class="n">namedtuple</span><span class="p">(</span><span class="s1">&#39;CptResults&#39;</span><span class="p">,</span> <span class="p">[</span><span class="s1">&#39;r2_x_z&#39;</span><span class="p">,</span>
+                                       <span class="s1">&#39;r2_x_y&#39;</span><span class="p">,</span>
+                                       <span class="s1">&#39;r2_y_z&#39;</span><span class="p">,</span>
+                                       <span class="s1">&#39;p&#39;</span><span class="p">,</span>
+                                       <span class="s1">&#39;p_ci&#39;</span><span class="p">,</span>
+                                       <span class="s1">&#39;null_distribution&#39;</span><span class="p">])</span>
+
+
+<span class="k">def</span> <span class="nf">cpt</span><span class="p">(</span><span class="n">x</span><span class="p">,</span> <span class="n">y</span><span class="p">,</span> <span class="n">z</span><span class="p">,</span> <span class="n">t_xy</span><span class="p">,</span> <span class="n">t_xz</span><span class="p">,</span> <span class="n">t_yz</span><span class="p">,</span> <span class="n">condlike_f</span><span class="p">,</span> <span class="n">num_perms</span><span class="o">=</span><span class="mi">1000</span><span class="p">,</span> <span class="n">mcmc_nstep</span><span class="o">=</span><span class="mi">50</span><span class="p">,</span> <span class="n">cond_dist_method</span><span class="o">=</span><span class="s1">&#39;GaussianReg&#39;</span><span class="p">,</span>
+        <span class="n">return_null_dist</span><span class="o">=</span><span class="kc">False</span><span class="p">,</span> <span class="n">random_state</span><span class="o">=</span><span class="kc">None</span><span class="p">,</span> <span class="n">progress</span><span class="o">=</span><span class="kc">True</span><span class="p">,</span> <span class="n">n_jobs</span><span class="o">=-</span><span class="mi">1</span><span class="p">):</span>
+    <span class="k">if</span> <span class="n">cond_dist_method</span> <span class="o">!=</span> <span class="s1">&#39;GaussianReg&#39;</span><span class="p">:</span>
+        <span class="k">assert</span> <span class="ne">NotImplementedError</span><span class="p">(</span><span class="s2">&quot;Currently only regression-based Gaussian conditional distribution estimation &quot;</span>
+                                   <span class="s2">&quot;(&#39;GaussianReg&#39;) is implemented.&quot;</span><span class="p">)</span>
+
+    <span class="n">rng</span> <span class="o">=</span> <span class="n">np</span><span class="o">.</span><span class="n">random</span><span class="o">.</span><span class="n">default_rng</span><span class="p">(</span><span class="n">random_state</span><span class="p">)</span>
+    <span class="n">random_sates</span> <span class="o">=</span> <span class="n">rng</span><span class="o">.</span><span class="n">integers</span><span class="p">(</span><span class="n">np</span><span class="o">.</span><span class="n">iinfo</span><span class="p">(</span><span class="n">np</span><span class="o">.</span><span class="n">int32</span><span class="p">)</span><span class="o">.</span><span class="n">max</span><span class="p">,</span> <span class="n">size</span><span class="o">=</span><span class="n">num_perms</span><span class="p">)</span>
+
+    <span class="n">x</span> <span class="o">=</span> <span class="n">np</span><span class="o">.</span><span class="n">array</span><span class="p">(</span><span class="n">x</span><span class="p">)</span>
+
+    <span class="n">r2_x_z</span> <span class="o">=</span> <span class="n">t_xz</span><span class="p">(</span><span class="n">x</span><span class="p">,</span> <span class="n">z</span><span class="p">)</span>
+    <span class="n">r2_y_z</span> <span class="o">=</span> <span class="n">t_yz</span><span class="p">(</span><span class="n">y</span><span class="p">,</span> <span class="n">z</span><span class="p">)</span>
+    <span class="n">r2_x_y</span> <span class="o">=</span> <span class="n">t_xy</span><span class="p">(</span><span class="n">x</span><span class="p">,</span> <span class="n">y</span><span class="p">)</span>
+
+    <span class="n">cond_log_lik_mat</span> <span class="o">=</span> <span class="n">condlike_f</span><span class="p">(</span><span class="n">x</span><span class="p">,</span> <span class="n">z</span><span class="p">)</span>
+    <span class="n">Pi_init</span> <span class="o">=</span> <span class="n">_generate_X_CPT_MC</span><span class="p">(</span><span class="n">mcmc_nstep</span><span class="p">,</span> <span class="n">cond_log_lik_mat</span><span class="p">,</span> <span class="n">np</span><span class="o">.</span><span class="n">arange</span><span class="p">(</span><span class="nb">len</span><span class="p">(</span><span class="n">x</span><span class="p">),</span> <span class="n">dtype</span><span class="o">=</span><span class="nb">int</span><span class="p">),</span> <span class="n">random_state</span><span class="o">=</span><span class="n">random_state</span><span class="p">)</span>
+
+    <span class="k">def</span> <span class="nf">workhorse</span><span class="p">(</span><span class="n">_random_state</span><span class="p">):</span>
+        <span class="c1"># batched os job_batch for efficient parallelization</span>
+        <span class="n">Pi</span> <span class="o">=</span> <span class="n">_generate_X_CPT_MC</span><span class="p">(</span><span class="n">mcmc_nstep</span><span class="p">,</span> <span class="n">cond_log_lik_mat</span><span class="p">,</span> <span class="n">Pi_init</span><span class="p">,</span> <span class="n">random_state</span><span class="o">=</span><span class="n">_random_state</span><span class="p">)</span>
+        <span class="k">return</span> <span class="n">t_xy</span><span class="p">(</span><span class="n">x</span><span class="p">[</span><span class="n">Pi</span><span class="p">],</span> <span class="n">y</span><span class="p">)</span>
+
+    <span class="k">with</span> <span class="n">tqdm_joblib</span><span class="p">(</span><span class="n">tqdm</span><span class="p">(</span><span class="n">desc</span><span class="o">=</span><span class="s1">&#39;Permuting&#39;</span><span class="p">,</span> <span class="n">total</span><span class="o">=</span><span class="n">num_perms</span><span class="p">,</span> <span class="n">disable</span><span class="o">=</span><span class="ow">not</span> <span class="n">progress</span><span class="p">)):</span>
+        <span class="n">r2_xpi_y</span> <span class="o">=</span> <span class="n">np</span><span class="o">.</span><span class="n">array</span><span class="p">(</span><span class="n">Parallel</span><span class="p">(</span><span class="n">n_jobs</span><span class="o">=</span><span class="n">n_jobs</span><span class="p">)(</span><span class="n">delayed</span><span class="p">(</span><span class="n">workhorse</span><span class="p">)(</span><span class="n">i</span><span class="p">)</span> <span class="k">for</span> <span class="n">i</span> <span class="ow">in</span> <span class="n">random_sates</span><span class="p">))</span>
+
+    <span class="n">p</span> <span class="o">=</span> <span class="n">np</span><span class="o">.</span><span class="n">sum</span><span class="p">(</span><span class="n">r2_xpi_y</span> <span class="o">&gt;=</span> <span class="n">r2_x_y</span><span class="p">)</span> <span class="o">/</span> <span class="nb">len</span><span class="p">(</span><span class="n">r2_xpi_y</span><span class="p">)</span>
+    <span class="n">ci</span> <span class="o">=</span> <span class="n">_binom_ci</span><span class="p">(</span><span class="nb">len</span><span class="p">(</span><span class="n">r2_xpi_y</span><span class="p">)</span> <span class="o">*</span> <span class="n">p</span><span class="p">,</span> <span class="nb">len</span><span class="p">(</span><span class="n">r2_xpi_y</span><span class="p">))</span>
+
+    <span class="k">if</span> <span class="ow">not</span> <span class="n">return_null_dist</span><span class="p">:</span>
+        <span class="n">r2_xpi_y</span> <span class="o">=</span> <span class="kc">None</span>
+
+    <span class="k">return</span> <span class="n">CptResults</span><span class="p">(</span>
+        <span class="n">r2_x_z</span><span class="p">,</span>
+        <span class="n">r2_x_y</span><span class="p">,</span>
+        <span class="n">r2_y_z</span><span class="p">,</span>
+        <span class="n">p</span><span class="p">,</span>
+        <span class="n">ci</span><span class="p">,</span>
+        <span class="n">r2_xpi_y</span>
+    <span class="p">)</span>
+
+
+<span class="n">ResultsFullyConfounded</span> <span class="o">=</span> <span class="n">namedtuple</span><span class="p">(</span><span class="s1">&#39;ResultsFullyConfounded&#39;</span><span class="p">,</span> <span class="p">[</span><span class="s1">&#39;r2_y_c&#39;</span><span class="p">,</span>
+                                                               <span class="s1">&#39;r2_y_yhat&#39;</span><span class="p">,</span>
+                                                               <span class="s1">&#39;r2_yhat_c&#39;</span><span class="p">,</span>
+                                                               <span class="s1">&#39;p&#39;</span><span class="p">,</span>
+                                                               <span class="s1">&#39;p_ci&#39;</span><span class="p">,</span>
+                                                               <span class="s1">&#39;null_distribution&#39;</span><span class="p">])</span>
+
+
+<span class="k">def</span> <span class="nf">test_fully_confounded</span><span class="p">(</span><span class="n">y</span><span class="p">,</span> <span class="n">yhat</span><span class="p">,</span> <span class="n">c</span><span class="p">,</span> <span class="n">num_perms</span><span class="o">=</span><span class="mi">1000</span><span class="p">,</span> <span class="n">cat_y</span><span class="o">=</span><span class="kc">False</span><span class="p">,</span> <span class="n">cat_yhat</span><span class="o">=</span><span class="kc">False</span><span class="p">,</span> <span class="n">cat_c</span><span class="o">=</span><span class="kc">False</span><span class="p">,</span> <span class="n">mcmc_nstep</span><span class="o">=</span><span class="mi">50</span><span class="p">,</span>
+                          <span class="n">cond_dist_method</span><span class="o">=</span><span class="s1">&#39;GaussianReg&#39;</span><span class="p">,</span>
+                          <span class="n">return_null_dist</span><span class="o">=</span><span class="kc">False</span><span class="p">,</span> <span class="n">random_state</span><span class="o">=</span><span class="kc">None</span><span class="p">,</span> <span class="n">progress</span><span class="o">=</span><span class="kc">True</span><span class="p">,</span> <span class="n">n_jobs</span><span class="o">=-</span><span class="mi">1</span><span class="p">):</span>
+
+    <span class="n">r2_y_yhat</span> <span class="o">=</span> <span class="n">_r2_factory</span><span class="p">(</span><span class="n">cat_y</span><span class="p">,</span> <span class="n">cat_yhat</span><span class="p">,</span> <span class="n">reverse_cat</span><span class="o">=</span><span class="kc">True</span><span class="p">)</span>
+    <span class="n">r2_y_c</span> <span class="o">=</span> <span class="n">_r2_factory</span><span class="p">(</span><span class="n">cat_y</span><span class="p">,</span> <span class="n">cat_c</span><span class="p">,</span> <span class="n">reverse_cat</span><span class="o">=</span><span class="kc">True</span><span class="p">)</span>
+    <span class="n">r2_yhat_c</span> <span class="o">=</span> <span class="n">_r2_factory</span><span class="p">(</span><span class="n">cat_yhat</span><span class="p">,</span> <span class="n">cat_c</span><span class="p">,</span> <span class="n">reverse_cat</span><span class="o">=</span><span class="kc">True</span><span class="p">)</span>
+
+    <span class="n">condlike_f</span> <span class="o">=</span> <span class="n">_conditional_log_likelihood_factory</span><span class="p">(</span><span class="n">cat_y</span><span class="p">,</span> <span class="n">cat_yhat</span><span class="p">)</span>
+
+    <span class="k">return</span> <span class="n">ResultsFullyConfounded</span><span class="p">(</span>
+        <span class="o">*</span><span class="n">cpt</span><span class="p">(</span><span class="n">x</span><span class="o">=</span><span class="n">y</span><span class="p">,</span> <span class="n">y</span><span class="o">=</span><span class="n">yhat</span><span class="p">,</span> <span class="n">z</span><span class="o">=</span><span class="n">c</span><span class="p">,</span> <span class="n">num_perms</span><span class="o">=</span><span class="n">num_perms</span><span class="p">,</span> <span class="n">t_xy</span><span class="o">=</span><span class="n">r2_y_yhat</span><span class="p">,</span> <span class="n">t_xz</span><span class="o">=</span><span class="n">r2_y_c</span><span class="p">,</span> <span class="n">t_yz</span><span class="o">=</span><span class="n">r2_yhat_c</span><span class="p">,</span> <span class="n">condlike_f</span><span class="o">=</span><span class="n">condlike_f</span><span class="p">,</span>
+             <span class="n">mcmc_nstep</span><span class="o">=</span><span class="n">mcmc_nstep</span><span class="p">,</span> <span class="n">return_null_dist</span><span class="o">=</span><span class="n">return_null_dist</span><span class="p">,</span> <span class="n">random_state</span><span class="o">=</span><span class="n">random_state</span><span class="p">,</span>
+             <span class="n">progress</span><span class="o">=</span><span class="n">progress</span><span class="p">,</span> <span class="n">n_jobs</span><span class="o">=</span><span class="n">n_jobs</span><span class="p">))</span>
+
+
+<span class="n">ResultsPartiallyConfounded</span> <span class="o">=</span> <span class="n">namedtuple</span><span class="p">(</span><span class="s1">&#39;ResultsPartiallyConfounded&#39;</span><span class="p">,</span> <span class="p">[</span><span class="s1">&#39;r2_y_c&#39;</span><span class="p">,</span>
+                                                                       <span class="s1">&#39;r2_yhat_c&#39;</span><span class="p">,</span>
+                                                                       <span class="s1">&#39;r2_y_yhat&#39;</span><span class="p">,</span>
+                                                                       <span class="s1">&#39;p&#39;</span><span class="p">,</span>
+                                                                       <span class="s1">&#39;p_ci&#39;</span><span class="p">,</span>
+                                                                       <span class="s1">&#39;null_distribution&#39;</span><span class="p">])</span>
+
+
+<div class="viewcode-block" id="test_partially_confounded"><a class="viewcode-back" href="../../docs.html#mlconfound.stats.test_partially_confounded">[docs]</a><span class="k">def</span> <span class="nf">test_partially_confounded</span><span class="p">(</span><span class="n">y</span><span class="p">,</span> <span class="n">yhat</span><span class="p">,</span> <span class="n">c</span><span class="p">,</span> <span class="n">num_perms</span><span class="o">=</span><span class="mi">1000</span><span class="p">,</span> <span class="n">cat_y</span><span class="o">=</span><span class="kc">False</span><span class="p">,</span> <span class="n">cat_yhat</span><span class="o">=</span><span class="kc">False</span><span class="p">,</span> <span class="n">cat_c</span><span class="o">=</span><span class="kc">False</span><span class="p">,</span> <span class="n">mcmc_nstep</span><span class="o">=</span><span class="mi">50</span><span class="p">,</span>
+                              <span class="n">cond_dist_method</span><span class="o">=</span><span class="s1">&#39;GaussianReg&#39;</span><span class="p">,</span>
+                              <span class="n">return_null_dist</span><span class="o">=</span><span class="kc">False</span><span class="p">,</span> <span class="n">random_state</span><span class="o">=</span><span class="kc">None</span><span class="p">,</span> <span class="n">progress</span><span class="o">=</span><span class="kc">True</span><span class="p">,</span> <span class="n">n_jobs</span><span class="o">=-</span><span class="mi">1</span><span class="p">):</span>
+    <span class="sd">&quot;&quot;&quot;</span>
+<span class="sd">    Partial Confounder Test</span>
+
+<span class="sd">    Notes</span>
+<span class="sd">    -----</span>
+<span class="sd">    Performs partial confounder test, a statistical test described in [1]_ and</span>
+<span class="sd">    based on the conditional permutation test for independence [2]_.</span>
+<span class="sd">    The null hypothesis of the test is that the model predictions are independent of the confounder,</span>
+<span class="sd">    given the target variable, i.e. there is no-confounder bias.</span>
+<span class="sd">    A low p-value therefore indicates significant confounder bias.</span>
+
+<span class="sd">    The method has no assumptions about the distribution of yhat, but assumes normality for the conditional distribution</span>
+<span class="sd">    (c | y). It is however, fairly robust to violating this assumptions, see [1]_.</span>
+
+
+<span class="sd">    Parameters</span>
+<span class="sd">    ----------</span>
+<span class="sd">    y : array_like</span>
+<span class="sd">        Target variable.</span>
+<span class="sd">    yhat : array_like</span>
+<span class="sd">        Predictions.</span>
+<span class="sd">    c : array_like</span>
+<span class="sd">        Confounder variable.</span>
+<span class="sd">    num_perms : int</span>
+<span class="sd">        Number of conditional permutations.</span>
+<span class="sd">    cat_y : bool</span>
+<span class="sd">        Flag for categorical target variable (classification).</span>
+<span class="sd">    cat_yhat : bool</span>
+<span class="sd">        Flag for categorical predictions (classification). Must be false, if class probabilities are used.</span>
+<span class="sd">    cat_c : bool</span>
+<span class="sd">        Flag for categorical confounder variable (e.g center, sex or batch).</span>
+<span class="sd">    mcmc_nstep : int</span>
+<span class="sd">        Number of steps for the Markov-chain Monte Carlo sampling.</span>
+<span class="sd">    cond_dist_method {GaussianReg}</span>
+<span class="sd">        Method to estimate the conditional distribution. Currently only Gaussian estimation is supported.</span>
+<span class="sd">    return_null_dist : bool</span>
+<span class="sd">        Whether permuted null distribution should be returned (e.g. for plotting purposes).</span>
+<span class="sd">    random_state : int or None</span>
+<span class="sd">        Random state for the conditional permutation.</span>
+<span class="sd">    progress : bool</span>
+<span class="sd">        Whether to print out progress bar.</span>
+<span class="sd">    n_jobs : int</span>
+<span class="sd">        Number of parallel jobs (-1: use all available processors).</span>
+
+<span class="sd">    Returns</span>
+<span class="sd">    -------</span>
+<span class="sd">    ResultsPartiallyConfounded</span>
+<span class="sd">        Named tuple with the fields:</span>
+<span class="sd">        - r2_y_c: coefficient-of-determination between y and c</span>
+<span class="sd">        - r2_yhat_c: coefficient-of-determination between yhat and c</span>
+<span class="sd">        - r2_y_yhat: coefficient-of-determination between y and yhat</span>
+<span class="sd">        - p: p-value</span>
+<span class="sd">        - p_ci: binomial 95% confidence interval for the p-value</span>
+<span class="sd">        - null_distribution: numpy.ndarray containing the permuted null distribution or None depending on teh value of</span>
+<span class="sd">          return_null_dist</span>
+
+<span class="sd">    Examples</span>
+<span class="sd">    --------</span>
+<span class="sd">    See `notebooks/quickstart.ipynb` for more detailed examples.</span>
+
+<span class="sd">    &gt;&gt;&gt; test_partially_confounded(y=[1,2,3,4,5,6], yhat=[1.5,2.3,2.9,4.2,5,5.7], c=[3,5,4,6,1,2], random_state=42).p</span>
+<span class="sd">    0.692</span>
+
+<span class="sd">    See Also</span>
+<span class="sd">    --------</span>
+<span class="sd">    test_fully_confounded</span>
+
+<span class="sd">    References</span>
+<span class="sd">    ----------</span>
+<span class="sd">    [1] Spisak, Tamas &quot;A conditional permutation-based approach to test confounder effect</span>
+<span class="sd">     and center-bias in machine learning models&quot;, in prep.</span>
+
+<span class="sd">    [2] Berrett, Thomas B., et al. &quot;The conditional permutation test for independence</span>
+<span class="sd">    while controlling for confounders.&quot;</span>
+<span class="sd">    Journal of the Royal Statistical Society: Series B (Statistical Methodology) 82.1 (2020): 175-197.</span>
+
+<span class="sd">    &quot;&quot;&quot;</span>
+
+    <span class="n">r2_c_yhat</span> <span class="o">=</span> <span class="n">_r2_factory</span><span class="p">(</span><span class="n">cat_c</span><span class="p">,</span> <span class="n">cat_yhat</span><span class="p">)</span>
+    <span class="n">r2_c_y</span> <span class="o">=</span> <span class="n">_r2_factory</span><span class="p">(</span><span class="n">cat_c</span><span class="p">,</span> <span class="n">cat_y</span><span class="p">)</span>
+    <span class="n">r2_yhat_y</span> <span class="o">=</span> <span class="n">_r2_factory</span><span class="p">(</span><span class="n">cat_yhat</span><span class="p">,</span> <span class="n">cat_y</span><span class="p">)</span>
+
+    <span class="n">condlike_f</span> <span class="o">=</span> <span class="n">_conditional_log_likelihood_factory</span><span class="p">(</span><span class="n">cat_c</span><span class="p">,</span> <span class="n">cat_yhat</span><span class="p">)</span>
+
+    <span class="k">return</span> <span class="n">ResultsPartiallyConfounded</span><span class="p">(</span>
+        <span class="o">*</span><span class="n">cpt</span><span class="p">(</span><span class="n">x</span><span class="o">=</span><span class="n">c</span><span class="p">,</span> <span class="n">y</span><span class="o">=</span><span class="n">yhat</span><span class="p">,</span> <span class="n">z</span><span class="o">=</span><span class="n">y</span><span class="p">,</span> <span class="n">num_perms</span><span class="o">=</span><span class="n">num_perms</span><span class="p">,</span> <span class="n">t_xy</span><span class="o">=</span><span class="n">r2_c_yhat</span><span class="p">,</span> <span class="n">t_xz</span><span class="o">=</span><span class="n">r2_c_y</span><span class="p">,</span> <span class="n">t_yz</span><span class="o">=</span><span class="n">r2_yhat_y</span><span class="p">,</span> <span class="n">condlike_f</span><span class="o">=</span><span class="n">condlike_f</span><span class="p">,</span>
+             <span class="n">mcmc_nstep</span><span class="o">=</span><span class="n">mcmc_nstep</span><span class="p">,</span> <span class="n">return_null_dist</span><span class="o">=</span><span class="n">return_null_dist</span><span class="p">,</span> <span class="n">random_state</span><span class="o">=</span><span class="n">random_state</span><span class="p">,</span>
+             <span class="n">progress</span><span class="o">=</span><span class="n">progress</span><span class="p">,</span> <span class="n">n_jobs</span><span class="o">=</span><span class="n">n_jobs</span><span class="p">))</span></div>
+</pre></div>
+
+          </div>
+          
+        </div>
+      </div>
+      <div class="sphinxsidebar" role="navigation" aria-label="main navigation">
+        <div class="sphinxsidebarwrapper">
+<h1 class="logo"><a href="../../index.html">mlconfound</a></h1>
+
+
+
+
+
+
+
+
+<h3>Navigation</h3>
+<p class="caption" role="heading"><span class="caption-text">Contents:</span></p>
+<ul>
+<li class="toctree-l1"><a class="reference internal" href="../../about.html">About the package mlconfound</a></li>
+<li class="toctree-l1"><a class="reference internal" href="../../install.html">Install</a></li>
+<li class="toctree-l1"><a class="reference internal" href="../../quickstart.html">Quickstart</a></li>
+<li class="toctree-l1"><a class="reference internal" href="../../docs.html">Documentation</a></li>
+</ul>
+
+<div class="relations">
+<h3>Related Topics</h3>
+<ul>
+  <li><a href="../../index.html">Documentation overview</a><ul>
+  <li><a href="../index.html">Module code</a><ul>
+  </ul></li>
+  </ul></li>
+</ul>
+</div>
+<div id="searchbox" style="display: none" role="search">
+  <h3 id="searchlabel">Quick search</h3>
+    <div class="searchformwrapper">
+    <form class="search" action="../../search.html" method="get">
+      <input type="text" name="q" aria-labelledby="searchlabel" autocomplete="off" autocorrect="off" autocapitalize="off" spellcheck="false"/>
+      <input type="submit" value="Go" />
+    </form>
+    </div>
+</div>
+<script>$('#searchbox').show(0);</script>
+
+
+
+
+
+
+
+
+        </div>
+      </div>
+      <div class="clearer"></div>
+    </div>
+    <div class="footer">
+      &copy;2021, Tamas Spisak.
+      
+      |
+      Powered by <a href="http://sphinx-doc.org/">Sphinx 4.1.2</a>
+      &amp; <a href="https://github.com/bitprophet/alabaster">Alabaster 0.7.12</a>
+      
+    </div>
+
+    
+
+    
+  </body>
+</html>

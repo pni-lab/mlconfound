@@ -2,14 +2,41 @@ import numpy as np
 
 
 def sinh_arcsinh(x, delta=1, epsilon=0):
-    """ Sinh-arcsinh transformation
-    The sinh-arcsinh transformation of Jones and Pewsey can be used to transfrom Normal distribution to non-normal.
-    See Jones, M. C. and Pewsey A. (2009). Sinh-arcsinh distributions. Biometrika 96: 761–780` for details.
-    :param array-like x: Normally distributed input data
-    :param float delta: parameter to control kurtosis, delta=1 means no change.
-    :param float epsilon: parameter to control skewness, epsilon=0 means no change.
-    :return: transformed data.
-    :rtype: array-like
+    """
+    Sinh-arcsinh transformation
+
+    Notes
+    -----
+    The sinh-arcsinh transformation of Jones and Pewsey [1]_ can be used to transfrom Normal distribution to non-normal.
+
+    Parameters
+    ----------
+    x : array_like
+        Normally distributed input data.
+    delta : float
+        Parameter to control kurtosis, delta=1 means no change.
+    epsilon : float
+        Parameter to control skewness, epsilon=0 means no change.
+    Returns
+    -------
+    array_like
+        Transformed data.
+
+    Examples
+    --------
+    See `validation/simulation.py` for an application example.
+
+    >>> sinh_arcsinh([-1, -0.5, -0.1, 0.1, 0.5, 1], delta=2, epsilon=1)
+    array([-7.8900947 , -3.48801839, -1.50886059, -0.88854985, -0.03758519,
+        0.83888754])
+
+    See Also
+    --------
+    simulate_y_c_yhat
+
+    References
+    ----------
+    [1] Jones, M. C. and Pewsey A. (2009). Sinh-arcsinh distributions. Biometrika 96: 761–780
     """
     return np.sinh(delta * np.arcsinh(x) - epsilon)
 

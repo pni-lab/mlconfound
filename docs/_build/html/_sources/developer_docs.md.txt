@@ -1,0 +1,6 @@
+# Documentation
+
+## mlconfound.stats
+
+1.. automodule:: mlconfound.stats
+    :members:
