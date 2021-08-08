@@ -44,6 +44,41 @@ def sinh_arcsinh(x, delta=1, epsilon=0):
 def simulate_y_c_yhat(cov_y_c,
                       y_ratio_yhat, c_ratio_yhat,
                       n, random_state=None):
+    """
+    Simulate normally distributed target (y), confounder (c) and predictions (yhat).
+
+    Parameters
+    ----------
+    cov_y_c: float
+        The covariance of y and c.
+    y_ratio_yhat: float
+        The weight of y in yhat.
+    c_ratio_yhat: float
+        The weight of c in yhat. Set it to zero for H0.
+    n: int
+        Number of observations.
+    random_state: int
+        Numpy random state.
+
+    Returns
+    -------
+    tuple
+
+        - y: the simulated target variable
+        - c: the simulated confounder variable
+        - yhat: the simulated predictions
+
+    See Also
+    --------
+    sinh_arcsinh
+
+    Examples
+    --------
+    >>> y, c, yhat = simulate_y_c_yhat(0.3, 0.2, 0.2, n=3, random_state=42)
+    >>> print(y, c, yhat)
+    [ 0.36959213 -1.16147869  2.34335464] [-0.86093366 -0.04858751  0.80259507] [-0.02156406 -0.43175879  0.61910925]
+
+    """
     rng = np.random.default_rng(random_state)
 
     y, c = rng.multivariate_normal([0, 0], [[1, cov_y_c], [cov_y_c, 1]], n).T

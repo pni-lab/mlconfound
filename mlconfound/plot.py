@@ -36,10 +36,7 @@ def plot_null_dist(confound_test_results, **kwargs):
 
     See Also
     ---------
-    plot
-
-
-    -------
+    plot_graph
 
     """
     if not hasattr(confound_test_results, 'null_distribution'):
@@ -75,6 +72,10 @@ def plot_graph(confound_test_results, y_name='y', yhat_name='<y&#770;>', c_name=
     -------
     dot
         The graphviz object to plot.
+
+    See Also
+    --------
+    plot_null_dist
 
     """
     if isinstance(confound_test_results, ResultsPartiallyConfounded):
