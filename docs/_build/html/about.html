@@ -17,8 +17,8 @@
     <link rel="author" title="About these documents" href="#" />
     <link rel="index" title="Index" href="genindex.html" />
     <link rel="search" title="Search" href="search.html" />
-    <link rel="next" title="Quickstart" href="quickstart.html" />
-    <link rel="prev" title="Welcome to mlconfound’s documentation!" href="index.html" />
+    <link rel="next" title="Install" href="install.html" />
+    <link rel="prev" title="Welcome to the docs of ‘mlconfound’!" href="index.html" />
    
   <link rel="stylesheet" href="_static/custom.css" type="text/css" />
   
@@ -37,6 +37,21 @@
             
   <section class="tex2jax_ignore mathjax_ignore" id="about-the-package-mlconfound">
 <h1>About the package mlconfound<a class="headerlink" href="#about-the-package-mlconfound" title="Permalink to this headline">¶</a></h1>
+<p>The lack of rigorous non-parametric statistical tests of confoudner-effects significantly hampers the development of
+robust, valid and generalizable predictive models in many fields of research.
+The package <code class="docutils literal notranslate"><span class="pre">mlconfound</span></code> implements the <em>partial</em> and <em>full confounder tests</em> [1], that build on a recent theoretical framework of conditional
+independence testing [2] and test the null hypothesis of \emph{no bias} and \emph{fully biased model}, respectively.
+The proposed tests set no assumptions about the distribution of the predictive model output that is often non-normal.
+As shown by theory and simulations, the test are statistically valid, robust and display a high statistical power.</p>
+<p><img alt="biased model example" src="_images/schematic.png" /></p>
+<section id="references">
+<h2>References<a class="headerlink" href="#references" title="Permalink to this headline">¶</a></h2>
+<p>[1] <em>Tamas Spisak, A conditional permutation-based approach to test confounder effect and center-bias in machine learning
+models, in prep, 2021</em></p>
+<p>[2] <em>Berrett, T. B., Wang, Y., Barber, R. F., and Samworth, R. J. (2020). The conditional permutation test for
+independencewhile controlling for confounders.Journal of the Royal Statistical Society:
+Series B (Statistical Methodology),82(1):175–197.</em></p>
+</section>
 </section>
 
 
@@ -59,6 +74,7 @@
 <p class="caption" role="heading"><span class="caption-text">Contents:</span></p>
 <ul class="current">
 <li class="toctree-l1 current"><a class="current reference internal" href="#">About the package mlconfound</a></li>
+<li class="toctree-l1"><a class="reference internal" href="install.html">Install</a></li>
 <li class="toctree-l1"><a class="reference internal" href="quickstart.html">Quickstart</a></li>
 <li class="toctree-l1"><a class="reference internal" href="docs.html">Documentation</a></li>
 </ul>
@@ -67,8 +83,8 @@
 <h3>Related Topics</h3>
 <ul>
   <li><a href="index.html">Documentation overview</a><ul>
-      <li>Previous: <a href="index.html" title="previous chapter">Welcome to mlconfound’s documentation!</a></li>
-      <li>Next: <a href="quickstart.html" title="next chapter">Quickstart</a></li>
+      <li>Previous: <a href="index.html" title="previous chapter">Welcome to the docs of ‘mlconfound’!</a></li>
+      <li>Next: <a href="install.html" title="next chapter">Install</a></li>
   </ul></li>
 </ul>
 </div>
