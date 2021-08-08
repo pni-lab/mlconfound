@@ -173,11 +173,8 @@ CptResults = namedtuple('CptResults', ['r2_x_z',
                                        'null_distribution'])
 
 
-def cpt(x, y, z, t_xy, t_xz, t_yz, condlike_f, num_perms=1000, mcmc_steps=50, cond_dist_method='GaussianReg',
+def cpt(x, y, z, t_xy, t_xz, t_yz, condlike_f, num_perms=1000, mcmc_steps=50,
         return_null_dist=False, random_state=None, progress=True, n_jobs=-1):
-    if cond_dist_method != 'GaussianReg':
-        assert NotImplementedError("Currently only regression-based Gaussian conditional distribution estimation "
-                                   "('GaussianReg') is implemented.")
 
     rng = np.random.default_rng(random_state)
     random_sates = rng.integers(np.iinfo(np.int32).max, size=num_perms)

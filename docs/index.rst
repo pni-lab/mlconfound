@@ -15,7 +15,6 @@ Install
    pip install mlconfound
 
 
-
 Example
 --------
 .. code-block:: python

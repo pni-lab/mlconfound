@@ -4,7 +4,7 @@
 
 ```{eval-rst}
 .. automodule:: mlconfound.stats
-    :members: test_partially_confounded
+    :members:
 ```
 
 -----------------------------------
