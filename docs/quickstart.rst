@@ -276,3 +276,20 @@ References
 *Tamas Spisak, A conditional permutation-based approach to test
 confounder effect and center-bias in machine learning models, in prep,
 2021.*
+
+See also:
+---------
+
+.. toctree::
+   about.md
+   install.md
+   docs.md
+   :maxdepth: 1
+
+`Back to main page <index.html>`_
+
+Give feedback: |GitHub stars|
+
+.. |GitHub stars| image:: https://img.shields.io/github/stars/pni-lab/mlconfound.svg?style=social&label=Star&maxAge=2592000
+   :target: https://GitHub.com/pni-lab/mlconfound/stargazers/
+
