@@ -182,7 +182,7 @@ if __name__ == '__main__':
                 else:
                     raise ArithmeticError('Invalid mode.')
 
-                return p, np.corrcoef(y, c)[0, 1]**2, np.corrcoef(yhat, c)[0, 1]**2, np.corrcoef(y, yhat)[0, 1]**2, random_seed
+                return p, np.corrcoef(y, c)[0, 1]**2, np.corrcoef(yhat, c)[0, 1]**2, np.corrcoef(y, yhat)[0, 1]**2, _random_state
 
 
         random_sates = rng.integers(np.iinfo(np.int32).max, size=repetitions)
