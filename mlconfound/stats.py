@@ -71,6 +71,9 @@ def _mnlogit_cdf(fit, df):
     mat.index = df.Z
     labels = np.unique(df.X)
     columns = [np.argwhere(labels == i).flatten()[0] for i in df.X]  # label 2 index
+
+    print(mat.iloc[:, columns].values.T)
+
     return mat.iloc[:, columns].values.T
 
 

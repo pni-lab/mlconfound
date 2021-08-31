@@ -4,7 +4,7 @@ import argparse
 import itertools
 import numpy as np
 import pandas as pd
-import matplotlib.pyplot as plt
+import pingouin as pg
 from tqdm import tqdm
 from joblib import Parallel, delayed
 
@@ -18,7 +18,8 @@ from mlconfound.simulate import simulate_y_c_yhat, sinh_arcsinh
 parser = argparse.ArgumentParser(description="Validate 'mlconfound' on simulated data.")
 
 parser.add_argument("--mode", help="Confound testing mode: 'partial' or 'full'. Default: 'partial'. ",
-                    choices=['partial', 'full'], type=str, default='partial')
+                    choices=['partial', 'full', 'partial_pearson', 'full_pearson', 'partial_spearman', 'full_spearman'],
+                    type=str, default='partial')
 
 parser.add_argument("--delta-yc", dest="delta_yc", action="store", default=1.0,
                     help="Delta of the sinh_arcsinh transformation on y and c to set kurtosis. "
@@ -55,11 +56,10 @@ parser.add_argument("--out", dest="out_file", action="store", default=None,
                     help="Output file name. Overrides --out_prefix", type=str)
 
 
-
 if __name__ == '__main__':
     args = parser.parse_args()
 
-    if args.mode == 'partial':  # option 3: partial
+    if args.mode.startswith('partial'):
         ################# default simulation parameters #########################
         confound_test = partial_confound_test
 
@@ -76,7 +76,7 @@ if __name__ == '__main__':
         all_yc_in_yhat = [0, 0.3, 0.6, 0.9]
 
         #########################################################################
-    elif args.mode == 'full':  #option 1: full
+    elif args.mode.startswith('full'):  #option 1: full
         ################# default simulation parameters #########################
         confound_test = full_confound_test
 
@@ -116,10 +116,10 @@ if __name__ == '__main__':
 
     for cov_y_c, yc_in_yhat, yc_ratio, n in tqdm(list(all_param_configurations)):
 
-        if args.mode == 'partial':
+        if args.mode.startswith('partial'):
             y_ratio_yhat = np.round(yc_in_yhat / (yc_ratio + 1), 2)
             c_ratio_yhat = np.round(yc_ratio * yc_in_yhat / (yc_ratio + 1), 2)
-        elif args.mode == 'full':
+        elif args.mode.startswith('full'):
             c_ratio_yhat = np.round(yc_in_yhat / (yc_ratio + 1), 2)
             y_ratio_yhat = np.round(yc_ratio * yc_in_yhat / (yc_ratio + 1), 2)
 
@@ -146,16 +146,43 @@ if __name__ == '__main__':
                 c = (c > 0).astype(int)
 
             # test
-            res = confound_test(y, yhat, c,
-                                cat_y=args.cat_yyhat,
-                                cat_yhat=args.cat_yyhat,
-                                cat_c=args.cat_c,
-                                num_perms=num_perms,
-                                random_state=_random_state,
-                                n_jobs=1,
-                                progress=False)
-            # return
-            return res.p, res.r2_y_c, res.r2_yhat_c, res.r2_y_yhat, _random_state
+            if args.mode == 'partial' or args.mode == 'partial':
+                res = confound_test(y, yhat, c,
+                                    cat_y=args.cat_yyhat,
+                                    cat_yhat=args.cat_yyhat,
+                                    cat_c=args.cat_c,
+                                    num_perms=num_perms,
+                                    random_state=_random_state,
+                                    n_jobs=1,
+                                    progress=False)
+                return res.p, res.r2_y_c, res.r2_yhat_c, res.r2_y_yhat, _random_state
+            else:
+
+                if args.mode.startswith('partial'):
+                    df = pd.DataFrame({
+                        'x': c,
+                        'y': yhat,
+                        'c': y
+
+                    })
+                elif args.mode.endswith('pearson'):
+                    df = pd.DataFrame({
+                        'x': y,
+                        'y': yhat,
+                        'c': c
+
+                    })
+
+                if args.mode.endswith('pearson'):
+                    _n, _r, _ci, p = pg.partial_corr(data=df, x='x', y='y', covar='c',
+                                    method='pearson')
+                elif args.mode.endswith('spearman'):
+                    _n, _r, _ci, p = pg.partial_corr(data=df, x='x', y='y', covar='c',
+                                    method='spearman')
+                else:
+                    raise ArithmeticError('Invalid mode.')
+
+                return p, np.corrcoef(y, c)[0, 1]**2, np.corrcoef(yhat, c)[0, 1]**2, np.corrcoef(y, yhat)[0, 1]**2, random_seed
 
 
         random_sates = rng.integers(np.iinfo(np.int32).max, size=repetitions)
