@@ -191,9 +191,9 @@ if __name__ == '__main__':
                                                                delayed(workhorse)(rs) for rs in random_sates)
                                                            )
 
-        if args.mode == 'partial':
+        if args.mode.startswith('partial'):
             name = "c_to_y_ratio_in_yhat"
-        elif args.mode == 'full':
+        elif args.mode.startswith('full'):
             name = "y_to_c_ratio_in_yhat"
         # create DataFrame and save it
         results = results.append(pd.DataFrame({
