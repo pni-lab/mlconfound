@@ -5,7 +5,7 @@ DIR=`dirname $0`
 
 ####################### all cont
 echo "normal y, yhat, c"
-python3 $DIR/simulation.py --out_prefix=spearman_ccc_partial_normal
+python3 $DIR/simulation.py --out_prefix=spearman_ccc_partial_normal --mode='partial_spearman'
 
 echo "non-nomral y,c,yhat: delta=1, epsilon=1 (kurt: 1.1 skew: -1.1)"
 python3 $DIR/simulation.py --out_prefix=spearman_ccc_partial_non-normal-all --delta-yc=1 --epsilon-yc=1 --delta-yhat=1 --epsilon-yhat=1 --mode='partial_spearman'
