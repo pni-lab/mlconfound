@@ -5,6 +5,7 @@ import pandas as pd
 from joblib import Parallel, delayed
 from scipy.stats import beta, norm
 from statsmodels.formula.api import ols, mnlogit
+from pygam import LinearGAM
 from tqdm import tqdm
 
 from ._utils import tqdm_joblib
@@ -78,46 +79,50 @@ def _mnlogit_cdf(fit, df):
 
 
 def _gauss_cdf(fit, df):
-    mu = np.array(fit.predict(df))
+    mu = np.array(fit.predict(df.Z))
     resid = df.X.values - mu
     sigma = np.repeat(np.std(resid), len(df.Z.values))
     # X | Z = Z_i ~ N(mu[i], sig2[i])
     return np.array([norm.logpdf(df.X.values, loc=m, scale=sigma) for m in mu]).T
 
 
-def _conditional_log_likelihood_gaussian_cont_cont(X0, Z):
+def _conditional_log_likelihood_gaussian_cont_cont(X0, Z, **model_kwargs):
     df = pd.DataFrame({
         'Z': Z,
         'X': X0
     })
-    fit = ols('X ~ Z', data=df).fit()
+    default_kwargs = {'n_splines': 8, 'dtype': ['numerical']}
+    model_kwargs = {**default_kwargs, **model_kwargs}
+    fit = LinearGAM(**model_kwargs).fit(y=df.X, X=df.Z)
     return _gauss_cdf(fit, df)
 
 
-def _conditional_log_likelihood_gaussian_cont_cat(X0, Z):
+def _conditional_log_likelihood_gaussian_cont_cat(X0, Z, **model_kwargs):
     df = pd.DataFrame({
         'Z': Z,
         'X': X0
     })
-    fit = ols('X ~ C(Z)', data=df).fit()
+    default_kwargs = {'n_splines': 8, 'dtype': ['categorical']}
+    model_kwargs = {**default_kwargs, **model_kwargs}
+    fit = LinearGAM(**model_kwargs).fit(y=df.X, X=df.Z)
     return _gauss_cdf(fit, df)
 
 
-def _conditional_log_likelihood_gaussian_cat_cont(X0, Z):
+def _conditional_log_likelihood_gaussian_cat_cont(X0, Z, **model_kwargs):
     df = pd.DataFrame({
         'Z': Z,
         'X': X0
     })
-    fit = mnlogit('X ~ Z', data=df).fit(disp=0, method='powell')
+    fit = mnlogit('X ~ Z', **model_kwargs, data=df).fit(disp=0, method='powell')
     return _mnlogit_cdf(fit, df)
 
 
-def _conditional_log_likelihood_gaussian_cat_cat(X0, Z):
+def _conditional_log_likelihood_gaussian_cat_cat(X0, Z, **model_kwargs):
     df = pd.DataFrame({
         'Z': Z,
         'X': X0
     })
-    fit = mnlogit('X ~ C(Z)', data=df).fit(disp=0, method='powell')
+    fit = mnlogit('X ~ C(Z)', **model_kwargs, data=df).fit(disp=0, method='powell')
     return _mnlogit_cdf(fit, df)
 
 
@@ -176,7 +181,7 @@ CptResults = namedtuple('CptResults', ['r2_x_z',
                                        'null_distribution'])
 
 
-def cpt(x, y, z, t_xy, t_xz, t_yz, condlike_f, num_perms=1000, mcmc_steps=50,
+def cpt(x, y, z, t_xy, t_xz, t_yz, condlike_f, condlike_model_args={}, num_perms=1000, mcmc_steps=50,
         return_null_dist=False, random_state=None, progress=True, n_jobs=-1):
 
     rng = np.random.default_rng(random_state)
@@ -188,8 +193,8 @@ def cpt(x, y, z, t_xy, t_xz, t_yz, condlike_f, num_perms=1000, mcmc_steps=50,
     r2_y_z = t_yz(y, z)
     r2_x_y = t_xy(x, y)
 
-    cond_log_lik_mat = condlike_f(x, z)
-    Pi_init = _generate_X_CPT_MC(mcmc_steps, cond_log_lik_mat, np.arange(len(x), dtype=int), random_state=random_state)
+    cond_log_lik_mat = condlike_f(x, z, **condlike_model_args)
+    Pi_init = _generate_X_CPT_MC(mcmc_steps*5, cond_log_lik_mat, np.arange(len(x), dtype=int), random_state=random_state)
 
     def workhorse(_random_state):
         # batched os job_batch for efficient parallelization
@@ -232,14 +237,14 @@ def full_confound_test(y, yhat, c, num_perms=1000, cat_y=False, cat_yhat=False, 
 
        Notes
        -----
-       Performs partial confounder test, a statistical test described in [1]_ and
-       based on the conditional permutation test for independence [2]_.
+       Performs the 'full confounder test', a statistical test described in [1]_, based
+       based on the conditional permutation test for independence [2]_, using a general additive model (numerical y) or
+       a multinomial logit model (categorical y) to estimate the y|c conditional distribution.
+       This allows handling non-normal and non-linear dependencies between the target variable, the model output and
+       the confounder variable.
        The null hypothesis of the test is that the model predictions are independent of the target variable,
        given the confounder variable, i.e. the model is entirely driven by the confounder.
        A low p-value therefore indicates that the model is not fully driven by the confounder.
-
-       The method has no assumptions about the distribution of yhat, but assumes normality for the conditional distribution
-       (c | y). It is however, fairly robust to violating this assumptions, see [1]_.
 
        Parameters
        ----------
@@ -313,7 +318,7 @@ def full_confound_test(y, yhat, c, num_perms=1000, cat_y=False, cat_yhat=False, 
     r2_y_c = _r2_factory(cat_y, cat_c, reverse_cat=True)
     r2_yhat_c = _r2_factory(cat_yhat, cat_c, reverse_cat=True)
 
-    condlike_f = _conditional_log_likelihood_factory(cat_y, cat_yhat)
+    condlike_f = _conditional_log_likelihood_factory(cat_y, cat_c)
 
     return ResultsFullyConfounded(
         *cpt(x=y, y=yhat, z=c, num_perms=num_perms, t_xy=r2_y_yhat, t_xz=r2_y_c, t_yz=r2_yhat_c, condlike_f=condlike_f,
@@ -338,15 +343,14 @@ def partial_confound_test(y, yhat, c, num_perms=1000, cat_y=False, cat_yhat=Fals
 
     Notes
     -----
-    Performs partial confounder test, a statistical test described in [1]_ and
-    based on the conditional permutation test for independence [2]_.
+    Performs the 'partial confounder test', a statistical test described in [1]_, based
+    based on the conditional permutation test for independence [2]_, using a general additive model (numerical c) or
+    a multinomial logit model (categorical c) to estimate the c|y conditional distribution.
+    This allows handling non-normal and non-linear dependencies between the target variable, the model output and
+    the confounder variable.
     The null hypothesis of the test is that the model predictions are independent of the confounder,
     given the target variable, i.e. there is no-confounder bias.
     A low p-value therefore indicates significant confounder bias.
-
-    The method has no assumptions about the distribution of yhat, but assumes normality for the conditional distribution
-    (c | y). It is however, fairly robust to violating this assumptions, see [1]_.
-
 
     Parameters
     ----------
@@ -399,7 +403,7 @@ def partial_confound_test(y, yhat, c, num_perms=1000, cat_y=False, cat_yhat=Fals
     See `notebooks/quickstart.ipynb` for more detailed examples.
 
     >>> partial_confound_test(y=[1,2,3,4,5,6], yhat=[1.5,2.3,2.9,4.2,5,5.7], c=[3,5,4,6,1,2], random_state=42, num_perms=100).p
-    0.7
+    0.6
 
     See Also
     --------
@@ -420,7 +424,7 @@ def partial_confound_test(y, yhat, c, num_perms=1000, cat_y=False, cat_yhat=Fals
     r2_c_y = _r2_factory(cat_c, cat_y)
     r2_yhat_y = _r2_factory(cat_yhat, cat_y)
 
-    condlike_f = _conditional_log_likelihood_factory(cat_c, cat_yhat)
+    condlike_f = _conditional_log_likelihood_factory(cat_c, cat_y)
 
     return ResultsPartiallyConfounded(
         *cpt(x=c, y=yhat, z=y, num_perms=num_perms, t_xy=r2_c_yhat, t_xz=r2_c_y, t_yz=r2_yhat_y, condlike_f=condlike_f,
