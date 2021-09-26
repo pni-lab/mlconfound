@@ -39,7 +39,7 @@ parser.add_argument("--epsilon-yhat", dest="epsilon_yhat", action="store", defau
                          "Default: 0: no transformation",
                     type=float)
 
-parser.add_argument("--nonlin-trf", dest="nonlin-trf",
+parser.add_argument("--nonlin-trf", dest="nonlin_trf",
                     choices=['identity', 'squared', 'sigmoid'],
                     type=str, default='identity')
 
