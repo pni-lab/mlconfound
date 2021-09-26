@@ -13,7 +13,7 @@ path = os.path.dirname(os.path.abspath(__file__))
 import sys
 sys.path.insert(0, sys.path[0] + '/..')
 from mlconfound.stats import full_confound_test, partial_confound_test
-from mlconfound.simulate import simulate_y_c_yhat, sinh_arcsinh
+from mlconfound.simulate import simulate_y_c_yhat, identity, polynomial, sigmoid
 
 parser = argparse.ArgumentParser(description="Validate 'mlconfound' on simulated data.")
 
@@ -39,6 +39,10 @@ parser.add_argument("--epsilon-yhat", dest="epsilon_yhat", action="store", defau
                          "Default: 0: no transformation",
                     type=float)
 
+parser.add_argument("--nonlin-trf", dest="nonlin-trf",
+                    choices=['identity', 'squared', 'sigmoid'],
+                    type=str, default='identity')
+
 parser.add_argument("--cat-yyhat", help="y and yhat is categorical. (default: continuous)",
                     action="store_true")
 parser.add_argument("--cat-c", help="c is categorical. (default: continuous)",
@@ -59,7 +63,17 @@ parser.add_argument("--out", dest="out_file", action="store", default=None,
 if __name__ == '__main__':
     args = parser.parse_args()
 
+    if args.nonlin_trf == "identity":
+        nonlin_trf = identity
+    elif args.nonlin_trf == 'squared':
+        nonlin_trf = polynomial
+    elif args.nonlin_trf == 'sigmoid':
+        nonlin_trf = sigmoid
+    else:
+        raise AttributeError("No such transformation:", args.nonlin_trf)
+
     if args.mode.startswith('partial'):
+
         ################# default simulation parameters #########################
         confound_test = partial_confound_test
 
@@ -68,7 +82,7 @@ if __name__ == '__main__':
 
         all_n = [50, 100, 500, 1000]
 
-        all_cov_y_c = [0, 0.2, 0.4, 0.6, 0.8]
+        all_y_in_c = [0, 0.2, 0.4, 0.6, 0.8]
 
         all_c_to_y_ratio_in_yhat = [0, 0.1, 0.3, 0.5, 1]
         all_yc_ratio = all_c_to_y_ratio_in_yhat
@@ -85,7 +99,7 @@ if __name__ == '__main__':
 
         all_n = [50, 100, 500, 1000]
 
-        all_cov_y_c = [0, 0.2, 0.4, 0.6, 0.8]
+        all_y_in_c = [0, 0.2, 0.4, 0.6, 0.8]
 
         all_y_to_c_ratio_in_yhat = [0, 0.1, 0.3, 0.5, 1]
         all_yc_ratio = all_y_to_c_ratio_in_yhat
@@ -97,13 +111,13 @@ if __name__ == '__main__':
         raise AttributeError('No such mode', args.mode)
 
     print('Number of simulations:', np.prod([len(i) for i in [
-        all_cov_y_c,
+        all_y_in_c,
         all_yc_in_yhat,
         all_yc_ratio,
         all_n]]) * repetitions)
 
     all_param_configurations = itertools.product(
-        all_cov_y_c,
+        all_y_in_c,
         all_yc_in_yhat,
         all_yc_ratio,
         all_n)
@@ -114,7 +128,7 @@ if __name__ == '__main__':
                                     "n", "c_to_y_ratio_in_yhat", "yc_in_yhat", "cov_y_c",
                                     "num_perms", "random_seed"])
 
-    for cov_y_c, yc_in_yhat, yc_ratio, n in tqdm(list(all_param_configurations)):
+    for y_in_c, yc_in_yhat, yc_ratio, n in tqdm(list(all_param_configurations)):
 
         if args.mode.startswith('partial'):
             y_ratio_yhat = np.round(yc_in_yhat / (yc_ratio + 1), 2)
@@ -126,7 +140,7 @@ if __name__ == '__main__':
         def workhorse(_random_state):
             # simulate
             y, c, yhat = simulate_y_c_yhat(
-                cov_y_c=cov_y_c,
+                cov_y_c=y_in_c,
                 y_ratio_yhat=y_ratio_yhat,
                 c_ratio_yhat=c_ratio_yhat,
                 n=n,
@@ -134,6 +148,7 @@ if __name__ == '__main__':
                 y_delta=args.delta_yc,
                 c_epsilon=args.epsilon_yc,
                 c_delta=args.delta_yc,
+                nonlin_trf_fun=nonlin_trf,
                 random_state=_random_state)
 
             # is it categorical?
@@ -154,38 +169,33 @@ if __name__ == '__main__':
                                     random_state=_random_state,
                                     n_jobs=1,
                                     progress=False)
-                return res.p, res.r2_y_c, res.r2_yhat_c, res.r2_y_yhat, _random_state
-            else:
 
-                if args.mode.startswith('partial'):
-                    df = pd.DataFrame({
-                        'x': c,
-                        'y': yhat,
-                        'c': y
+            if args.mode.startswith('partial'):
+                df = pd.DataFrame({
+                    'x': c,
+                    'y': yhat,
+                    'c': y
+                })
+            elif args.mode.startswith('full'):
+                df = pd.DataFrame({
+                    'x': y,
+                    'y': yhat,
+                    'c': c
 
-                    })
-                elif args.mode.startswith('full'):
-                    df = pd.DataFrame({
-                        'x': y,
-                        'y': yhat,
-                        'c': c
+                })
 
-                    })
-
-                if args.mode.endswith('pearson'):
-                    ret = pg.partial_corr(data=df, x='x', y='y', covar='c',
+            # partial correlation
+            res_parcor_pearson = pg.partial_corr(data=df, x='x', y='y', covar='c',
                                     method='pearson')
-                elif args.mode.endswith('spearman'):
-                    ret = pg.partial_corr(data=df, x='x', y='y', covar='c',
+            res_parcor_spearman = pg.partial_corr(data=df, x='x', y='y', covar='c',
                                     method='spearman')
-                else:
-                    raise ArithmeticError('Invalid mode.')
 
-                return ret['p-val'].values[0], np.corrcoef(y, c)[0, 1]**2, np.corrcoef(yhat, c)[0, 1]**2, np.corrcoef(y, yhat)[0, 1]**2, _random_state
+            return res.p, res_parcor_pearson['p-val'].values[0], res_parcor_spearman['p-val'].values[0],\
+               res.r2_y_c, res.r2_yhat_c, res.r2_y_yhat, _random_state
 
 
         random_sates = rng.integers(np.iinfo(np.int32).max, size=repetitions)
-        p, r2_y_c, r2_yhat_c, r2_y_yhat, random_seed = zip(*
+        p, p_pc_pearson, p_pc_spearman, r2_y_c, r2_yhat_c, r2_y_yhat, random_seed = zip(*
                                                            Parallel(n_jobs=-1)(
                                                                delayed(workhorse)(rs) for rs in random_sates)
                                                            )
@@ -197,13 +207,15 @@ if __name__ == '__main__':
         # create DataFrame and save it
         results = results.append(pd.DataFrame({
             "p": p,
+            "p_pc_pearson": p_pc_pearson,
+            "p_pc_spearman": p_pc_spearman,
             "r2_y_c": r2_y_c,
             "r2_yhat_c": r2_yhat_c,
             "r2_y_yhat": r2_y_yhat,
             "n": n,
             name: yc_ratio,
             "yc_in_yhat": yc_in_yhat,
-            "cov_y_c": cov_y_c,
+            "cov_y_c": y_in_c,
             "num_perms": num_perms,
             "random_seed": list(random_seed)
         }), ignore_index=True)
@@ -215,4 +227,3 @@ if __name__ == '__main__':
             results.to_csv(sys.path[0] + '/data_out/' + filename)
         else:
             results.to_csv(args.out_file)
-

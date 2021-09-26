@@ -100,8 +100,8 @@ def simulate_y_c_yhat(y_ratio_c,
 
     Parameters
     ----------
-    cov_y_c: float
-        The covariance of y and c.
+    y_ratio_c: float
+        The weight of y in c.
     y_ratio_yhat: float
         The weight of y in yhat.
     c_ratio_yhat: float
@@ -109,15 +109,15 @@ def simulate_y_c_yhat(y_ratio_c,
     n: int
         Number of observations.
     y_delta: float
-        The delta param of the sinh_archsin transformation on y's contribution in yhat (only affects yhat)
+        The delta param of the sinh_archsin transformation on y's contribution in yhat (only affects yhat).
     y_epsilon: float
-        The epsilon param of the sinh_archsin transformation on y's contribution in yhat (only affects yhat)
+        The epsilon param of the sinh_archsin transformation on y's contribution in yhat (only affects yhat).
     c_delta: float
-        The delta param of the sinh_archsin transformation on c's contribution in yhat (only affects yhat)
+        The delta param of the sinh_archsin transformation on c's contribution in yhat (only affects yhat).
     c_epsilon: float
-        The epsilon param of the sinh_archsin transformation on c's contribution in yhat (only affects yhat)
+        The epsilon param of the sinh_archsin transformation on c's contribution in yhat (only affects yhat).
     nonlin_trf_fun: callable
-        Callable to introduce non-linearity in the conditional distributions. (default: no non-linearity)
+        Callable to introduce non-linearity in the conditional distributions. (default: no non-linearity).
     random_state: int
         Numpy random state.
 
