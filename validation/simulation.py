@@ -125,7 +125,7 @@ if __name__ == '__main__':
     rng = np.random.default_rng(args.random_seed)
 
     results = pd.DataFrame(columns=["p", "r2_y_c", "r2_yhat_c", "r2_y_yhat",
-                                    "n", "c_to_y_ratio_in_yhat", "yc_in_yhat", "cov_y_c",
+                                    "n", "c_to_y_ratio_in_yhat", "yc_in_yhat", "y_in_c",
                                     "num_perms", "random_seed"])
 
     for y_in_c, yc_in_yhat, yc_ratio, n in tqdm(list(all_param_configurations)):
@@ -140,7 +140,7 @@ if __name__ == '__main__':
         def workhorse(_random_state):
             # simulate
             y, c, yhat = simulate_y_c_yhat(
-                cov_y_c=y_in_c,
+                y_in_c=y_in_c,
                 y_ratio_yhat=y_ratio_yhat,
                 c_ratio_yhat=c_ratio_yhat,
                 n=n,
@@ -215,7 +215,7 @@ if __name__ == '__main__':
             "n": n,
             name: yc_ratio,
             "yc_in_yhat": yc_in_yhat,
-            "cov_y_c": y_in_c,
+            "y_in_c": y_in_c,
             "num_perms": num_perms,
             "random_seed": list(random_seed)
         }), ignore_index=True)
