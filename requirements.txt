@@ -10,4 +10,4 @@ statsmodels>=0.12.2
 pygam>=0.8.0
 tqdm>=4.62.0
 pingouin>=0.4.0
-mlconfound~=0.10.0
+mlconfound
