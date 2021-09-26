@@ -1,4 +1,5 @@
 import numpy as np
+from warnings import warn
 
 
 def sinh_arcsinh(x, delta=1, epsilon=0):
@@ -30,6 +31,11 @@ def sinh_arcsinh(x, delta=1, epsilon=0):
     >>> print(result)
     [-7.8900947  -3.48801839 -1.50886059 -0.88854985 -0.03758519  0.83888754]
 
+    >>> result = sinh_arcsinh([-1, -0.5, -0.1, 0.1, 0.5, 1], delta=1, epsilon=0)
+    >>> print(result)
+    [-1.  -0.5 -0.1  0.1  0.5  1. ]
+
+
     See Also
     --------
     simulate_y_c_yhat
@@ -41,9 +47,54 @@ def sinh_arcsinh(x, delta=1, epsilon=0):
     return np.sinh(delta * np.arcsinh(x) - epsilon)
 
 
-def simulate_y_c_yhat(cov_y_c,
+def identity(x):
+    """
+    Identity transformation
+
+    Notes
+    -----
+    To be used as a transformation function in simulate_y_c_yhat.
+
+    Parameters
+    ----------
+    x
+
+    Returns
+    -------
+
+    See Also
+    --------
+    simulate_y_c_yhat
+
+    """
+    return x
+
+
+def polynomial(x, coefs=[1, 1]):
+    ret = 0
+    for c_i, coef in enumerate(coefs):
+        ret += coef * np.power(x, c_i + 1)
+    return ret
+
+
+def sigmoid(x, method='tanh'):
+    if method == 'tanh':
+        return np.tanh(x)
+    else:
+        raise NotImplementedError("Currently only tanh is implemented.")
+
+
+def simulate_y_c_yhat(y_ratio_c,
                       y_ratio_yhat, c_ratio_yhat,
-                      n, random_state=None):
+                      n,
+                      y_delta=1,
+                      y_epsilon=0,
+                      c_delta=1,
+                      c_epsilon=0,
+                      yhat_delta=1,
+                      yhat_epsilon=0,
+                      nonlin_trf_fun=identity,
+                      random_state=None):
     """
     Simulate normally distributed target (y), confounder (c) and predictions (yhat).
 
@@ -57,6 +108,16 @@ def simulate_y_c_yhat(cov_y_c,
         The weight of c in yhat. Set it to zero for H0.
     n: int
         Number of observations.
+    y_delta: float
+        The delta param of the sinh_archsin transformation on y's contribution in yhat (only affects yhat)
+    y_epsilon: float
+        The epsilon param of the sinh_archsin transformation on y's contribution in yhat (only affects yhat)
+    c_delta: float
+        The delta param of the sinh_archsin transformation on c's contribution in yhat (only affects yhat)
+    c_epsilon: float
+        The epsilon param of the sinh_archsin transformation on c's contribution in yhat (only affects yhat)
+    nonlin_trf_fun: callable
+        Callable to introduce non-linearity in the conditional distributions. (default: no non-linearity)
     random_state: int
         Numpy random state.
 
@@ -76,16 +137,21 @@ def simulate_y_c_yhat(cov_y_c,
     --------
     >>> y, c, yhat = simulate_y_c_yhat(0.3, 0.2, 0.2, n=3, random_state=42)
     >>> print(y, c, yhat)
-    [ 0.36959213 -1.16147869  2.34335464] [-0.86093366 -0.04858751  0.80259507] [-0.02156406 -0.43175879  0.61910925]
+    [ 0.30471708 -1.03998411  0.7504512 ] [ 0.74981043 -1.67771986 -0.6863903 ] [ 0.28760974 -0.73328635  0.00273149]
 
     """
     rng = np.random.default_rng(random_state)
 
-    y, c = rng.multivariate_normal([0, 0], [[1, cov_y_c], [cov_y_c, 1]], n).T
+    y = rng.normal(0, 1, n).T
+    c = y_ratio_c * nonlin_trf_fun(y) + rng.normal(0, 1 - y_ratio_c, n)
 
-    yhat = y_ratio_yhat * y + c_ratio_yhat * c + (1 - y_ratio_yhat - c_ratio_yhat) * rng.normal(0, 1, n)
+    # todo: non-normal noise?
+    yhat = y_ratio_yhat * nonlin_trf_fun(y) + c_ratio_yhat * nonlin_trf_fun(c) + (
+            1 - y_ratio_yhat - c_ratio_yhat) * rng.normal(0, 1, n)
 
-    return y, c, yhat
+    return sinh_arcsinh(y, delta=y_delta, epsilon=y_epsilon), \
+           sinh_arcsinh(c, delta=c_delta, epsilon=c_epsilon), \
+           sinh_arcsinh(yhat, delta=yhat_delta, epsilon=yhat_epsilon)
 
 
 def _create_covariance_matrix(rho, p):
@@ -99,6 +165,8 @@ def simulate_y_c_X(cov_y_c,
                    n_features, X_corr,
                    dirichlet_sparsity,
                    n, random_state=None):
+    warn('This method is deprecated.', DeprecationWarning, stacklevel=2)
+
     rng = np.random.default_rng(random_state)
 
     y, c = rng.multivariate_normal([0, 0], [[1, cov_y_c], [cov_y_c, 1]], n).T

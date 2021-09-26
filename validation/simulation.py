@@ -130,12 +130,11 @@ if __name__ == '__main__':
                 y_ratio_yhat=y_ratio_yhat,
                 c_ratio_yhat=c_ratio_yhat,
                 n=n,
+                y_epsilon=args.epsilon_yc,
+                y_delta=args.delta_yc,
+                c_epsilon=args.epsilon_yc,
+                c_delta=args.delta_yc,
                 random_state=_random_state)
-
-            # introduce non-normality
-            y = sinh_arcsinh(y, args.delta_yc, args.epsilon_yc)
-            c = sinh_arcsinh(c, args.delta_yc, args.epsilon_yc)
-            yhat = sinh_arcsinh(yhat, args.delta_yhat, args.epsilon_yhat)
 
             # is it categorical?
             # right now only binary variables can be simulated
@@ -146,7 +145,7 @@ if __name__ == '__main__':
                 c = (c > 0).astype(int)
 
             # test
-            if args.mode == 'partial' or args.mode == 'partial':
+            if args.mode == 'partial' or args.mode == 'full':
                 res = confound_test(y, yhat, c,
                                     cat_y=args.cat_yyhat,
                                     cat_yhat=args.cat_yyhat,
@@ -165,7 +164,7 @@ if __name__ == '__main__':
                         'c': y
 
                     })
-                elif args.mode.endswith('pearson'):
+                elif args.mode.startswith('full'):
                     df = pd.DataFrame({
                         'x': y,
                         'y': yhat,
