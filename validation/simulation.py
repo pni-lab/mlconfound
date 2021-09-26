@@ -140,7 +140,7 @@ if __name__ == '__main__':
         def workhorse(_random_state):
             # simulate
             y, c, yhat = simulate_y_c_yhat(
-                y_in_c=y_in_c,
+                y_ratio_c=y_in_c,
                 y_ratio_yhat=y_ratio_yhat,
                 c_ratio_yhat=c_ratio_yhat,
                 n=n,
