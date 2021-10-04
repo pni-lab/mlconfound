@@ -72,9 +72,6 @@ def _mnlogit_cdf(fit, df):
     mat.index = df.Z
     labels = np.unique(df.X)
     columns = [np.argwhere(labels == i).flatten()[0] for i in df.X]  # label 2 index
-
-    print(mat.iloc[:, columns].values.T)
-
     return mat.iloc[:, columns].values.T
 
 
@@ -93,7 +90,7 @@ def _conditional_log_likelihood_gaussian_cont_cont(X0, Z, **model_kwargs):
     })
     default_kwargs = {'n_splines': 8, 'dtype': ['numerical']}
     model_kwargs = {**default_kwargs, **model_kwargs}
-    fit = LinearGAM(**model_kwargs).fit(y=df.X, X=df.Z)
+    fit = LinearGAM(**model_kwargs).gridsearch(y=df.X, X=df.Z.values.reshape(-1, 1), progress=False)  # todo: multivariate case
     return _gauss_cdf(fit, df)
 
 
@@ -104,7 +101,7 @@ def _conditional_log_likelihood_gaussian_cont_cat(X0, Z, **model_kwargs):
     })
     default_kwargs = {'n_splines': 8, 'dtype': ['categorical']}
     model_kwargs = {**default_kwargs, **model_kwargs}
-    fit = LinearGAM(**model_kwargs).fit(y=df.X, X=df.Z)
+    fit = LinearGAM(**model_kwargs).gridsearch(y=df.X, X=df.Z.values.reshape(-1, 1), progress=False)  # todo: multivariate case
     return _gauss_cdf(fit, df)
 
 
