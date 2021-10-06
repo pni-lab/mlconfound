@@ -2,6 +2,10 @@ import numpy as np
 from warnings import warn
 
 
+def _scale(x):
+    return (x - x.mean()) / x.std()
+
+
 def sinh_arcsinh(x, delta=1, epsilon=0):
     """
     Sinh-arcsinh transformation
@@ -84,40 +88,43 @@ def sigmoid(x, method='tanh'):
         raise NotImplementedError("Currently only tanh is implemented.")
 
 
-def simulate_y_c_yhat(y_ratio_c,
-                      y_ratio_yhat, c_ratio_yhat,
+def simulate_y_c_yhat(w_yc,
+                      w_yyhat, w_cyhat,
                       n,
-                      y_delta=1,
-                      y_epsilon=0,
-                      c_delta=1,
-                      c_epsilon=0,
-                      yhat_delta=1,
-                      yhat_epsilon=0,
+                      delta=1,
+                      epsilon=0,
                       nonlin_trf_fun=identity,
+                      scale=True,
                       random_state=None):
     """
     Simulate normally distributed target (y), confounder (c) and predictions (yhat).
 
+    Notes
+    -----
+    .. math:: y \sim \mathcal{N}(0, 1)
+
+    .. math:: c | y_i \sim \mathcal{N}(w_{y,c} f(y_i), 1)
+
+    .. math:: \hat{y} | y_i, c_i \sim sinh(\delta sinh^{-1}( \mathcal{N}(w_{y,c} f(y_i), 1))-\epsilon)
+
     Parameters
     ----------
-    y_ratio_c: float
+    w_yc: float
         The weight of y in c.
-    y_ratio_yhat: float
+    w_yyhat: float
         The weight of y in yhat.
-    c_ratio_yhat: float
+    w_cyhat: float
         The weight of c in yhat. Set it to zero for H0.
     n: int
         Number of observations.
-    y_delta: float
+    delta: float
         The delta param of the sinh_archsin transformation on y's contribution in yhat (only affects yhat).
-    y_epsilon: float
+    epsilon: float
         The epsilon param of the sinh_archsin transformation on y's contribution in yhat (only affects yhat).
-    c_delta: float
-        The delta param of the sinh_archsin transformation on c's contribution in yhat (only affects yhat).
-    c_epsilon: float
-        The epsilon param of the sinh_archsin transformation on c's contribution in yhat (only affects yhat).
     nonlin_trf_fun: callable
         Callable to introduce non-linearity in the conditional distributions. (default: no non-linearity).
+    scale: bool
+        Scale variables to zero mean and unit variance.
     random_state: int
         Numpy random state.
 
@@ -137,47 +144,17 @@ def simulate_y_c_yhat(y_ratio_c,
     --------
     >>> y, c, yhat = simulate_y_c_yhat(0.3, 0.2, 0.2, n=3, random_state=42)
     >>> print(y, c, yhat)
-    [ 0.30471708 -1.03998411  0.7504512 ] [ 0.74981043 -1.67771986 -0.6863903 ] [ 0.28760974 -0.73328635  0.00273149]
+    [ 0.30471708 -1.03998411  0.7504512 ] [ 1.32193037 -1.09613765 -0.22579272] [ 1.03955979 -1.35013318  0.31057339]
 
     """
     rng = np.random.default_rng(random_state)
+    y = rng.normal(0, 1, n)
 
-    y = rng.normal(0, 1, n).T
-    c = y_ratio_c * nonlin_trf_fun(y) + rng.normal(0, 1 - y_ratio_c, n)
+    c = np.array([rng.normal(w_yc * nonlin_trf_fun(yi), 1, 1) for yi in y]).flatten()
+    c = _scale(c)
 
-    # todo: non-normal noise?
-    yhat = y_ratio_yhat * nonlin_trf_fun(y) + c_ratio_yhat * nonlin_trf_fun(c) + (
-            1 - y_ratio_yhat - c_ratio_yhat) * rng.normal(0, 1, n)
+    yhat = sinh_arcsinh(np.array([rng.normal(w_yyhat * nonlin_trf_fun(yi) + w_cyhat * nonlin_trf_fun(ci), 1, 1)
+                                  for yi, ci in zip(y, c)]).flatten(), delta=delta, epsilon=epsilon)
+    yhat = _scale(yhat)
 
-    return sinh_arcsinh(y, delta=y_delta, epsilon=y_epsilon), \
-           sinh_arcsinh(c, delta=c_delta, epsilon=c_epsilon), \
-           sinh_arcsinh(yhat, delta=yhat_delta, epsilon=yhat_epsilon)
-
-
-def _create_covariance_matrix(rho, p):
-    a = np.repeat(np.arange(p) + 1, p).reshape(p, p)
-    b = np.repeat(np.arange(p) + 1, p).reshape(p, p).T
-    return rho ** abs(a - b)
-
-
-def simulate_y_c_X(cov_y_c,
-                   y_ratio_X, c_ratio_X,
-                   n_features, X_corr,
-                   dirichlet_sparsity,
-                   n, random_state=None):
-    warn('This method is deprecated.', DeprecationWarning, stacklevel=2)
-
-    rng = np.random.default_rng(random_state)
-
-    y, c = rng.multivariate_normal([0, 0], [[1, cov_y_c], [cov_y_c, 1]], n).T
-
-    cov_X = _create_covariance_matrix(X_corr, n_features)
-
-    signs = rng.binomial(1, 0.5, n_features) * 2 - 1
-
-    X = y_ratio_X * y * \
-        (rng.dirichlet([dirichlet_sparsity] * n_features, 1) * np.sqrt(n_features) * signs).T
-    X += c_ratio_X * c * \
-         (rng.dirichlet([dirichlet_sparsity] * n_features, 1) * np.sqrt(n_features) * signs).T
-    X += (1 - y_ratio_X - c_ratio_X) * rng.multivariate_normal([0] * n_features, cov_X, n).T
-    return y, c, X.T
+    return y, c, yhat
