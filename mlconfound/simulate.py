@@ -150,11 +150,13 @@ def simulate_y_c_yhat(w_yc,
     rng = np.random.default_rng(random_state)
     y = rng.normal(0, 1, n)
 
-    c = np.array([rng.normal(w_yc * nonlin_trf_fun(yi), 1, 1) for yi in y]).flatten()
-    c = _scale(c)
+    c = np.array([sinh_arcsinh(rng.normal(0, 1, 1), delta=delta, epsilon=epsilon) + w_yc * nonlin_trf_fun(yi) for yi in y]).flatten()
+    if scale:
+        c = _scale(c)
 
-    yhat = sinh_arcsinh(np.array([rng.normal(w_yyhat * nonlin_trf_fun(yi) + w_cyhat * nonlin_trf_fun(ci), 1, 1)
-                                  for yi, ci in zip(y, c)]).flatten(), delta=delta, epsilon=epsilon)
-    yhat = _scale(yhat)
+    yhat = np.array([sinh_arcsinh(rng.normal(0, 1, 1), delta=delta, epsilon=epsilon) + w_yyhat * nonlin_trf_fun(yi) + w_cyhat * nonlin_trf_fun(ci)
+                                  for yi, ci in zip(y, c)]).flatten()
+    if scale:
+        yhat = _scale(yhat)
 
     return y, c, yhat
