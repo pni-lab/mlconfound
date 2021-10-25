@@ -16,12 +16,12 @@ dependence of the predictions on the confounder can be explained solely
 by the confounder-target association. Put simply, this is what is tested
 by the proposed partial confounder test.
 
-Here we will apply the ``partial confound test`` on two simulated
+Here we will apply the ``partial confounder test`` on two simulated
 datasets: - H0: null-hypothesis dataset with no confounder bias,
 i.e. conditional independence between the predicted values and the
 confounder variable, given the observed target variable. Note that the
 (unconditional) association between the prediction and the target are
-significant but - according to the H0 of the partial confoudner test -
+significant but - according to the H0 of the partial confounder test -
 can be fully explained by the association between the target and the
 confounder. - H1: alternative hypothesis with an explicit confounder
 bias. Here, the association between the predictions and the confounder
@@ -44,25 +44,15 @@ Import the necessary packages
 H0 simulations
 ''''''''''''''
 
-Next, we simulate some data from the null hypothesis.
-
-The simulation samples ``y`` and ``c`` (``n`` datapoints each) from the
-multivariate normal distribution, so that their correlation is
-``cov_y_c``. Next, a ‘prediction’ of y is simulated like this:
-
-::
-
-   yhat = y_ratio_yhat * y + c_ratio_yhat * c + e
-
-where ``e`` is random standard-Gaussian noise.
-
-For the H0 simulation, ``c_ratio_yhat`` is set to zero.
+Next, we simulate some data from the null hypothesis. For the H0
+simulation, the direct contribution of the confounder to the predicted
+values (``w_cyhat``) is set to zero.
 
 .. code:: ipython3
 
-    H0_y, H0_c, H0_yhat = simulate_y_c_yhat(cov_y_c=0.3,
-                          y_ratio_yhat=0.5, c_ratio_yhat=0,
-                          n=500, random_state=42)
+    H0_y, H0_c, H0_yhat = simulate_y_c_yhat(w_yc=0.5,
+                          w_yyhat=0.5, w_cyhat=0,
+                          n=1000, random_state=42)
 
 Partial confound test
 '''''''''''''''''''''
@@ -74,8 +64,10 @@ number of permutations for more accurate p-value estimates.
 
 The random seed is set for reproducible results. The flag
 ``return_null_dist`` is set so that the full permutation-based null
-distribution is returned, e.g. for plotting purposes.
+distribution is returned, e.g. for plotting purposes.
 
+The pandas dataframe is solely created for “pretty-printing” the
+results.
 
 .. code:: ipython3
 
@@ -86,7 +78,7 @@ distribution is returned, e.g. for plotting purposes.
 
 .. parsed-literal::
 
-    Permuting: 100%|██████████| 1000/1000 [00:02<00:00, 457.42it/s]
+    Permuting: 100%|██████████| 1000/1000 [00:03<00:00, 323.64it/s]
 
 
 
@@ -122,12 +114,12 @@ distribution is returned, e.g. for plotting purposes.
       <tbody>
         <tr>
           <th>0</th>
-          <td>0.798</td>
-          <td>0.771754</td>
-          <td>0.822478</td>
-          <td>0.094132</td>
-          <td>0.031789</td>
-          <td>0.478693</td>
+          <td>0.76</td>
+          <td>0.732287</td>
+          <td>0.786173</td>
+          <td>0.187028</td>
+          <td>0.031732</td>
+          <td>0.210914</td>
         </tr>
       </tbody>
     </table>
@@ -152,13 +144,13 @@ a graphical representation of the results.
 
 
 
-.. image:: _static/quickstart_7_1.png
+.. image:: quickstart_files/quickstart_7_1.png
 
 
 The histogram shows the :math:`R^2` values between the predictions and
 the permuted confounder variable (conditional permutations). The red
 line indicates that the unpermuted :math:`R^2` is not “extreme”, i.e. we
-have no evidence against the null (:math:`p=0.8`).
+have no evidence against the null (:math:`p=0.76`).
 
 .. code:: ipython3
 
@@ -167,7 +159,7 @@ have no evidence against the null (:math:`p=0.8`).
 
 
 
-.. image:: _static/quickstart_9_0.svg
+.. image:: quickstart_files/quickstart_9_0.svg
 
 
 
@@ -182,17 +174,16 @@ confounded model.
 
 .. code:: ipython3
 
-    H1_y, H1_c, H1_yhat = simulate_y_c_yhat(cov_y_c=0.3,
-                          y_ratio_yhat=0.4, c_ratio_yhat=0.1,
-                          n=500, random_state=42)
-
+    H1_y, H1_c, H1_yhat = simulate_y_c_yhat(w_yc=0.5,
+                          w_yyhat=0.5, w_cyhat=0.1,
+                          n=1000, random_state=42)
     ret=partial_confound_test(H1_y, H1_yhat, H1_c, num_perms=1000, return_null_dist=True,
                       random_state=42, n_jobs=-1)
 
 
 .. parsed-literal::
 
-    Permuting: 100%|██████████| 1000/1000 [00:01<00:00, 759.92it/s]
+    Permuting: 100%|██████████| 1000/1000 [00:01<00:00, 595.58it/s]
 
 
 
@@ -228,12 +219,12 @@ confounded model.
       <tbody>
         <tr>
           <th>0</th>
-          <td>0.015</td>
-          <td>0.008419</td>
-          <td>0.02462</td>
-          <td>0.094132</td>
-          <td>0.079504</td>
-          <td>0.390694</td>
+          <td>0.027</td>
+          <td>0.017867</td>
+          <td>0.039042</td>
+          <td>0.187028</td>
+          <td>0.067903</td>
+          <td>0.237854</td>
         </tr>
       </tbody>
     </table>
@@ -244,16 +235,18 @@ confounded model.
 .. code:: ipython3
 
     plot_null_dist(ret)
-
-    # The labels on the graph plot can be customized:
+    # Note that the labels on the graph plot can be customized:
     plot_graph(ret, y_name='IQ', yhat_name='prediction', c_name='age', outfile_base='example')
 
 
-.. image:: _static/quickstart_13_1.png
 
 
-.. image:: _static/quickstart_13_0.svg
+.. image:: quickstart_files/quickstart_13_0.svg
 
+
+
+
+.. image:: quickstart_files/quickstart_13_1.png
 
 
 The low p-value provides evidence against the null hypothesis of
@@ -263,33 +256,16 @@ and indicates that the model predictions are biased.
 +-----------------------------------------------------------------------+
 | Note                                                                  |
 +-----------------------------------------------------------------------+
-| For parametric corrections for multiple comparisons (e.g. false       |
-| discovery rate in case of testing many                                |
-| confounders), permutation based p-values must be adjusted if they are |
-| zero. A decent option could be in this case to use the upper binomial |
-| confidence limit (``p_ci[1]``), instead.                              |
+| For parametric corrections for multiple comparisons (e.g. false       |
+| discovery rate in case of testing many confounders), permuted         |
+| p-values must not be zero. In this case, permutation based p-values   |
+| must be adjusted if they are zero. A decent option could be in this   |
+| case to use the upper binomial confidence limit (``p_ci[1]``) for     |
+| FDR.                                                                  |
 +-----------------------------------------------------------------------+
 
 References
 ~~~~~~~~~~
 
-*Tamas Spisak, A conditional permutation-based approach to test
-confounder effect and center-bias in machine learning models, in prep,
+*Tamas Spisak, A conditional permutation-based approach to test confounder and center effects in machine learning models, in prep,
 2021.*
-
-See also:
----------
-
-.. toctree::
-   about.md
-   install.md
-   docs.md
-   :maxdepth: 1
-
-`Back to main page <index.html>`_
-
-Give feedback: |GitHub stars|
-
-.. |GitHub stars| image:: https://img.shields.io/github/stars/pni-lab/mlconfound.svg?style=social&label=Star&maxAge=2592000
-   :target: https://GitHub.com/pni-lab/mlconfound/stargazers/
-

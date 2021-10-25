@@ -94,6 +94,9 @@ def simulate_y_c_yhat(w_yc,
                       delta=1,
                       epsilon=0,
                       nonlin_trf_fun=identity,
+                      bin_y=False,
+                      bin_c=False,
+                      bin_yhat=False,
                       scale=True,
                       random_state=None):
     """
@@ -150,13 +153,20 @@ def simulate_y_c_yhat(w_yc,
     rng = np.random.default_rng(random_state)
     y = rng.normal(0, 1, n)
 
+    if bin_y:
+        y = (y > 0).astype(int)
+
     c = np.array([sinh_arcsinh(rng.normal(0, 1, 1), delta=delta, epsilon=epsilon) + w_yc * nonlin_trf_fun(yi) for yi in y]).flatten()
     if scale:
         c = _scale(c)
+    if bin_c:
+        c = (c > 0).astype(int)
 
     yhat = np.array([sinh_arcsinh(rng.normal(0, 1, 1), delta=delta, epsilon=epsilon) + w_yyhat * nonlin_trf_fun(yi) + w_cyhat * nonlin_trf_fun(ci)
                                   for yi, ci in zip(y, c)]).flatten()
     if scale:
         yhat = _scale(yhat)
+    if bin_yhat:
+        yhat = (yhat > 0).astype(int)
 
     return y, c, yhat
