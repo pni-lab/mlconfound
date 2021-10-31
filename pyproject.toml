@@ -11,9 +11,9 @@ readme = 'README.md'
 keywords = [
     "machine learning",
     "predictive modelling",
-    "confounder test",
+    "confounding bias",
     "conditional independence",
-    "conditional permutation"
+    "confounder test"
 ]
 classifiers = [
     "Programming Language :: Python :: 3",
