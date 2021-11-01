@@ -136,15 +136,7 @@ a graphical representation of the results.
 
 
 
-
-.. parsed-literal::
-
-    <AxesSubplot:title={'center':'null distribution'}, xlabel='R2(y^,c*)', ylabel='count'>
-
-
-
-
-.. image:: quickstart_files/quickstart_7_1.png
+.. image:: _static/quickstart_7_1.png
 
 
 The histogram shows the :math:`R^2` values between the predictions and
@@ -159,7 +151,7 @@ have no evidence against the null (:math:`p=0.76`).
 
 
 
-.. image:: quickstart_files/quickstart_9_0.svg
+.. image:: _static/quickstart_9_0.svg
 
 
 
@@ -241,12 +233,12 @@ confounded model.
 
 
 
-.. image:: quickstart_files/quickstart_13_0.svg
+.. image:: _static/quickstart_13_0.svg
 
 
 
 
-.. image:: quickstart_files/quickstart_13_1.png
+.. image:: _static/quickstart_13_1.png
 
 
 The low p-value provides evidence against the null hypothesis of
