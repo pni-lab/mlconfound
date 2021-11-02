@@ -7,16 +7,16 @@ independence testing [2] and test the null hypothesis of *no bias* and *fully bi
 The proposed tests set no assumptions about the distribution of the predictive model output that is often non-normal.
 As shown by theory and simulations, the test are statistically valid, robust and display a high statistical power.
 
-![biased model example](_static/schematic.png "An example of a biased model")
+![usage](_static/schematic.png "Usage.")
 
 
 #### References
-[1] *Tamas Spisak, A conditional permutation-based approach to test confounder effect and center-bias in machine learning
-models, in prep, 2021*
+[1] T. Spisak, Statistical quantification of confounding bias in predictive modelling, preprint on `arXiv:2111.00814 <http://arxiv-export-lb.library.cornell.edu/abs/2111.00814>`_, 2021.
 
-[2] *Berrett, T. B., Wang, Y., Barber, R. F., and Samworth, R. J. (2020). The conditional permutation test for
+
+[2] Berrett, T. B., Wang, Y., Barber, R. F., and Samworth, R. J. (2020). The conditional permutation test for
 independencewhile controlling for confounders.Journal of the Royal Statistical Society: 
-Series B (Statistical Methodology),82(1):175–197.*
+Series B (Statistical Methodology),82(1):175–197.
 
 #### Contact / bug report
 [GitHub Issues](https://github.com/pni-lab/mlconfound/issues): 

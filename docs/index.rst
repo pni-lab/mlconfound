@@ -48,6 +48,10 @@ Source
 -------
 `https://github.com/pni-lab/mlconfound <https://github.com/pni-lab/mlconfound>`_
 
+Citation
+--------
+
+T. Spisak, Statistical quantification of confounding bias in predictive modelling, preprint on `arXiv:2111.00814 <http://arxiv-export-lb.library.cornell.edu/abs/2111.00814>`_, 2021.
 
 Navigation
 --------

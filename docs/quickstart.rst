@@ -259,5 +259,6 @@ and indicates that the model predictions are biased.
 References
 ~~~~~~~~~~
 
-*Tamas Spisak, A conditional permutation-based approach to test confounder and center effects in machine learning models, in prep,
-2021.*
+T. Spisak, Statistical quantification of confounding bias in predictive modelling, preprint on `arXiv:2111.00814 <http://arxiv-export-lb.library.cornell.edu/abs/2111.00814>`_, 2021.
+
+
