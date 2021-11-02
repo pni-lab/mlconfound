@@ -6,7 +6,7 @@
 Welcome to the docs of 'mlconfound'! |GitHub stars|
 ==========
 
-|GitHub license| |GitHub release| |GitHub CI| |Documentation Status| |GitHub issues| |GitHub issues-closed|
+|GitHub license| |GitHub release| |GitHub CI| |Documentation Status| |arXiv| |GitHub issues| |GitHub issues-closed|
 
 
 Tools for analyzing and quantifying effects of counfounder variables on machine learning model predictions.
@@ -83,6 +83,9 @@ Documentation index
 .. |Documentation Status| image:: https://readthedocs.org/projects/mlconfound/badge/?version=latest
    :target: https://mlconfound.readthedocs.io/en/latest/?badge=latest
 
+.. |arXiv| image:: https://img.shields.io/badge/arXiv-2111.00814-<COLOR>.svg
+   :target: https://arxiv.org/abs/2111.00814
+
 .. |GitHub issues| image:: https://img.shields.io/github/issues/pni-lab/mlconfound.svg
    :target: https://GitHub.com/pni-lab/mlconfound/issues/
 
@@ -91,4 +94,3 @@ Documentation index
 
 .. |GitHub stars| image:: https://img.shields.io/github/stars/pni-lab/mlconfound.svg?style=social&label=Star&maxAge=2592000
    :target: https://GitHub.com/pni-lab/mlconfound/stargazers/
-
