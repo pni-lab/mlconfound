@@ -28,3 +28,6 @@ Read the docs for more details.
 
 ## Documentation [![Documentation Status](https://readthedocs.org/projects/mlconfound/badge/?version=latest)](https://mlconfound.readthedocs.io/en/latest/?badge=latest)
 https://mlconfound.readthedocs.io
+
+## Citation
+T. Spisak, Statistical quantification of confounding bias in predictive modelling, preprint on [arXiv:2111.00814](http://arxiv-export-lb.library.cornell.edu/abs/2111.00814), 2021.
