@@ -17,16 +17,11 @@ by the confounder-target association. Put simply, this is what is tested
 by the proposed partial confounder test.
 
 Here we will apply the ``partial confounder test`` on two simulated
-datasets: - H0: null-hypothesis dataset with no confounder bias,
-i.e. conditional independence between the predicted values and the
-confounder variable, given the observed target variable. Note that the
-(unconditional) association between the prediction and the target are
-significant but - according to the H0 of the partial confounder test -
-can be fully explained by the association between the target and the
-confounder. - H1: alternative hypothesis with an explicit confounder
-bias. Here, the association between the predictions and the confounder
-is stronger than what could follow form the association between the
-target and the confounder.
+datasets:
+
+- H0: null-hypothesis dataset with no confounder bias, i.e. conditional independence between the predicted values and the confounder variable, given the observed target variable. Note that the (unconditional) association between the prediction and the target are significant but - according to the H0 of the partial confounder test - can be fully explained by the association between the target and the confounder.
+
+- H1: alternative hypothesis with an explicit confounder bias. Here, the association between the predictions and the confounder is stronger than what could follow form the association between the target and the confounder.
 
 Import the necessary packages
 '''''''''''''''''''''''''''''
@@ -39,7 +34,6 @@ Import the necessary packages
     
     import pandas as pd
     import seaborn as sns
-    sns.set_style("whitegrid")
 
 H0 simulations
 ''''''''''''''
