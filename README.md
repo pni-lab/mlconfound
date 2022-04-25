@@ -6,6 +6,7 @@
 [![arXiv](https://img.shields.io/badge/arXiv-2111.00814-<COLOR>.svg)](https://arxiv.org/abs/2111.00814)
 [![GitHub issues](https://img.shields.io/github/issues/pni-lab/mlconfound.svg)](https://GitHub.com/pni-lab/mlconfound/issues/)
 [![GitHub issues-closed](https://img.shields.io/github/issues-closed/pni-lab/mlconfound.svg)](https://GitHub.com/pni-lab/mlconfound/issues?q=is%3Aissue+is%3Aclosed)
+[![Binder](https://mybinder.org/badge_logo.svg)](https://mybinder.org/v2/gh/pni-lab/mlconfound/master?labpath=notebooks%2Fquickstart.ipynb)
 
 Tools for analyzing and quantifying effects of counfounder variables on machine learning model predictions.
 ## Install
@@ -24,6 +25,8 @@ from mlconfound.stats import partial_confound_test
 
 partial_confound_test(y, yhat, c)
 ````
+
+Run the quickstart notebook in Binder: [![Binder](https://mybinder.org/badge_logo.svg)](https://mybinder.org/v2/gh/pni-lab/mlconfound/master?labpath=notebooks%2Fquickstart.ipynb)
 
 Read the docs for more details.
 
