@@ -206,8 +206,9 @@ def _generate_X_CPT_MC(nstep, log_lik_mat, Pi, random_state=None):
 
 
 CptResults = namedtuple('CptResults', ['r2_x_z',
-                                       'r2_x_y',
                                        'r2_y_z',
+                                       'r2_x_y',
+                                       'expected_r2_x_y',
                                        'p',
                                        'p_ci',
                                        'null_distribution'])
@@ -238,25 +239,28 @@ def cpt(x, y, z, t_xy, t_xz, t_yz, condlike_f, condlike_model_args=None, num_per
     with tqdm_joblib(tqdm(desc='Permuting', total=num_perms, disable=not progress)):
         r2_xpi_y = np.array(Parallel(n_jobs=n_jobs)(delayed(workhorse)(i) for i in random_sates))
 
+    expected_x_y = np.quantile(r2_xpi_y, (0.05, 0.5, 0.95))
     p = np.sum(r2_xpi_y >= r2_x_y) / len(r2_xpi_y)
-    ci = _binom_ci(len(r2_xpi_y) * p, len(r2_xpi_y))
+    ci_p = _binom_ci(len(r2_xpi_y) * p, len(r2_xpi_y))
 
     if not return_null_dist:
         r2_xpi_y = None
 
     return CptResults(
         r2_x_z,
-        r2_x_y,
         r2_y_z,
+        r2_x_y,
+        expected_x_y,
         p,
-        ci,
+        ci_p,
         r2_xpi_y
     )
 
 
 ResultsFullyConfounded = namedtuple('ResultsFullyConfounded', ['r2_y_c',
-                                                               'r2_y_yhat',
                                                                'r2_yhat_c',
+                                                               'r2_y_yhat',
+                                                               'expected_r2_y_yhat',
                                                                'p',
                                                                'p_ci',
                                                                'null_distribution'])
@@ -273,7 +277,7 @@ def full_confound_test(y, yhat, c, num_perms=1000,
 
        Notes
        -----
-       Performs the 'full confounder test', a statistical test described in [1]_, based
+       Performs the 'full confounder test', a statistical test described in [1]_,
        based on the conditional permutation test for independence [2]_, using a linear or a general additive model
        (for numerical y, based on the parameter `cond_dist_method`) and a multinomial logit model
        (for categorical y, undependent on cond_dist_method) to estimate the y|c conditional distribution.
@@ -320,9 +324,11 @@ def full_confound_test(y, yhat, c, num_perms=1000,
 
            - "r2_y_c": coefficient-of-determination between y and c,
 
+           - "r2_yhat_c": coefficient-of-determination between yhat and c,
+
            - "r2_y_yhat": coefficient-of-determination between y and yhat,
 
-           - "r2_yhat_c": coefficient-of-determination between yhat and c,
+           - "expected_r2_y_yhat": expected (0.05, 0.5, 0.95) quantiles of the coefficient-of-determination between y and yhat (given c),
 
            - "p": p-value,
 
@@ -367,8 +373,9 @@ def full_confound_test(y, yhat, c, num_perms=1000,
 
 
 ResultsPartiallyConfounded = namedtuple('ResultsPartiallyConfounded', ['r2_y_c',
-                                                                       'r2_yhat_c',
                                                                        'r2_y_yhat',
+                                                                       'r2_yhat_c',
+                                                                       'expected_r2_yhat_c',
                                                                        'p',
                                                                        'p_ci',
                                                                        'null_distribution'])
@@ -432,9 +439,12 @@ def partial_confound_test(y, yhat, c, num_perms=1000,
 
         - "r2_y_c": coefficient-of-determination between y and c,
 
+        - "r2_y_yhat": coefficient-of-determination between y and yhat,
+
         - "r2_yhat_c": coefficient-of-determination between yhat and c,
 
-        - "r2_y_yhat": coefficient-of-determination between y and yhat,
+        - "expected_r2_yhat_c": expected (0.05, 0.5, 0.95) quantiles of the coefficient-of-determination between yhat
+        and c (given y),
 
         - "p": p-value,
 

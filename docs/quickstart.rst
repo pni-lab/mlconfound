@@ -60,8 +60,7 @@ The random seed is set for reproducible results. The flag
 ``return_null_dist`` is set so that the full permutation-based null
 distribution is returned, e.g. for plotting purposes.
 
-The pandas dataframe is solely created for “pretty-printing” the
-results.
+
 
 .. code:: ipython3
 
@@ -101,8 +100,10 @@ results.
           <th>ci lower</th>
           <th>ci upper</th>
           <th>R2(y,c)</th>
-          <th>R2(y^,c)</th>
           <th>R2(y,y^)</th>
+          <th>Expected R2(y^,c)</th>
+          <th>Observed R2(y^,c)</th>
+
         </tr>
       </thead>
       <tbody>
@@ -112,14 +113,17 @@ results.
           <td>0.732287</td>
           <td>0.786173</td>
           <td>0.187028</td>
-          <td>0.031732</td>
           <td>0.210914</td>
+          <td>[0.024, 0.04, 0.059]</td>
+          <td>0.031732</td>
         </tr>
       </tbody>
     </table>
     </div>
 
 
+The p-value provides no evidence to reject our null-hypothesis of uncounfoudned model.
+The observed coefficient-of-determination is well within the expected range (given by 5%, 50% and 95% percentiles).
 
 Let’s use the built-in plot functions of the package ``mlconfound`` for
 a graphical representation of the results.
@@ -198,8 +202,9 @@ confounded model.
           <th>ci lower</th>
           <th>ci upper</th>
           <th>R2(y,c)</th>
-          <th>R2(y^,c)</th>
           <th>R2(y,y^)</th>
+          <th>Expected R2(y^,c)</th>
+          <th>Observed R2(y^,c)</th>
         </tr>
       </thead>
       <tbody>
@@ -209,8 +214,10 @@ confounded model.
           <td>0.017867</td>
           <td>0.039042</td>
           <td>0.187028</td>
-          <td>0.067903</td>
           <td>0.237854</td>
+          <td>[0.027, 0.044, 0.065]</td>
+          <td>0.067903</td>
+
         </tr>
       </tbody>
     </table>
@@ -238,6 +245,8 @@ confounded model.
 The low p-value provides evidence against the null hypothesis of
 :math:`y` being conditionally independent on :math:`c` given :math:`y`
 and indicates that the model predictions are biased.
+The observed coefficient-of-determination falls outside of the expected range (given by 5%, 50% and 95% percentiles).
+
 
 +-----------------------------------------------------------------------+
 | Note                                                                  |
