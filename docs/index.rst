@@ -28,7 +28,6 @@ From `PyPI <https://pypi.org/project/mlconfound>`_:
 
 
 
-
 Example
 --------
 .. code-block:: python
@@ -51,7 +50,8 @@ Source
 Citation
 --------
 
-T. Spisak, Statistical quantification of confounding bias in predictive modelling, preprint on `arXiv:2111.00814 <http://arxiv-export-lb.library.cornell.edu/abs/2111.00814>`_, 2021.
+T. Spisak, "Statistical quantification of confounding bias in machine learning models." GigaScience 11 (2022)  https://doi.org/10.1093/gigascience/giac082.
+Preprint on `arXiv:2111.00814 <http://arxiv-export-lb.library.cornell.edu/abs/2111.00814>`_, 2021.
 
 Navigation
 --------
