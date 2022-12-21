@@ -1,6 +1,7 @@
 from collections import namedtuple
 
 import numpy as np
+np.int = np.int_  # hack to maintain compatibility with pygam 0.8.0 and numpy>=1.24
 import pandas as pd
 from joblib import Parallel, delayed
 from scipy.stats import beta, norm
